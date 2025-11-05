@@ -11,22 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Ito na yung default user migration,
+        // in-edit na para isama ang custom columns ninyo
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->id(); // Ito ay unsignedBigInteger('id')
+            
+            // --- Custom Columns ---
+            $table->string('first_name', 100);
+            $table->string('middle_name', 100)->nullable();
+            $table->string('last_name', 100);
+            // ----------------------
+
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->string('password'); // Pinalitan mula 'password_hash'
             $table->rememberToken();
-            $table->timestamps();
+            $table->timestamps(); // Adds created_at and updated_at
         });
 
+        // Ito ay para sa default password reset ng Laravel
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Ito ay para sa default sessions ng Laravel
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

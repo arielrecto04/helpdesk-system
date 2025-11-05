@@ -15,14 +15,46 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create base entities first
         $this->call([
-            TicketSeeder::class
+            DepartmentSeeder::class,
+            PositionSeeder::class,
+            RoleSeeder::class,
+            HelpdeskTeamSeeder::class,
         ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Create admin user
+        $admin = User::create([
+            'first_name' => 'System',
+            'last_name' => 'Administrator',
+            'email' => 'admin@helpdesk.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        // Create support agents
+        for ($i = 1; $i <= 5; $i++) {
+            User::create([
+                'first_name' => "Support",
+                'last_name' => "Agent {$i}",
+                'email' => "agent{$i}@helpdesk.com",
+                'password' => bcrypt('password'),
+            ]);
+        }
+
+        // Assign roles to users
+        $adminRole = \App\Models\Role::where('name', 'Admin')->first();
+        $agentRole = \App\Models\Role::where('name', 'Support Agent')->first();
+        
+        $admin->roles()->attach($adminRole->id);
+        
+        User::where('email', 'like', 'agent%')->get()->each(function ($user) use ($agentRole) {
+            $user->roles()->attach($agentRole->id);
+        });
+
+        // Create customers and tickets
+        $this->call([
+            CustomerSeeder::class,
+            TicketSeeder::class,
         ]);
     }
 }

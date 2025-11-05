@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -18,7 +19,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'middle_name',
+        'last_name',
         'email',
         'password',
     ];
@@ -32,11 +35,12 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+    
 
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string>
      */
     protected function casts(): array
     {
@@ -44,5 +48,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the roles assigned to the user.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'user_role');
+    }
+
+
+    /**
+     * Get the teams this user is a member of.
+     */
+    public function teams()
+    {
+        return $this->belongsToMany(HelpdeskTeam::class, 'user_team', 'user_id', 'team_id');
+    }
+
+    /**
+     * Get the tickets assigned to this user.
+     */
+    public function assignedTickets()
+    {
+        return $this->hasMany(Ticket::class, 'assigned_to_user_id');
     }
 }
