@@ -166,18 +166,25 @@ const setActiveTab = (tabName) => {
                     }"
                     class="sm:hidden"
                 >
+                    <!-- Responsive Navigation Menu -->
                     <div class="space-y-1 pb-3 pt-2">
                         <template v-for="tab in tabs" :key="tab.name">
-                             <ResponsiveNavLink v-if="tab.type === 'tab'" :href="tab.href" :active="route().current(tab.href.split('/').pop())">
+
+                            <!-- Kung 'tab' type, ipakita lang ito -->
+                            <ResponsiveNavLink v-if="tab.type === 'tab'" :href="tab.href" :active="route().current(tab.href.split('/').pop())">
                                 {{ tab.name }}
                             </ResponsiveNavLink>
-                             <div v-else class="px-4 py-2 text-sm text-gray-500">{{ tab.name }}</div>
-                             <ResponsiveNavLink v-for="item in tab.items" :key="item.name" :href="item.href" class="ps-8">
-                                {{ item.name }}
-                            </ResponsiveNavLink>
+
+                            <!-- Kung HINDI 'tab' type (ibig sabihin, dropdown), ipakita ito -->
+                            <template v-else>
+                                <div class="px-4 py-2 text-sm text-gray-500">{{ tab.name }}</div>
+                                <ResponsiveNavLink v-for="item in tab.items" :key="item.name" :href="item.href" class="ps-8">
+                                    {{ item.name }}
+                                </ResponsiveNavLink>
+                            </template>
+                            
                         </template>
                     </div>
-
                     <!-- Responsive Settings Options -->
                     <div
                         class="border-t border-gray-200 pb-1 pt-4"

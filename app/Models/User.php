@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Ticket;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -73,5 +75,11 @@ class User extends Authenticatable
     public function assignedTickets()
     {
         return $this->hasMany(Ticket::class, 'assigned_to_user_id');
+    }
+    public function createdTickets(): HasMany
+    {
+        // By default, Eloquent will assume the foreign key on the 'tickets'
+        // table is 'user_id'.
+        return $this->hasMany(Ticket::class);
     }
 }
