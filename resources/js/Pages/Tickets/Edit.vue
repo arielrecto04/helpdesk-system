@@ -16,6 +16,9 @@ const props = defineProps({
     stages: Array,
 });
 
+// Format the deadline to YYYY-MM-DD for the date input.
+const formattedDeadline = props.ticket.deadline ? props.ticket.deadline.split(' ')[0] : '';
+
 const form = useForm({
     customer_id: props.ticket.customer_id,
     subject: props.ticket.subject,
@@ -24,7 +27,7 @@ const form = useForm({
     stage: props.ticket.stage,
     team_id: props.ticket.team_id,
     assigned_to_user_id: props.ticket.assigned_to_user_id,
-    deadline: props.ticket.deadline,
+    deadline: formattedDeadline,
 });
 
 const submit = () => {

@@ -12,8 +12,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-
 use Illuminate\Validation\Rule;
+
 class TicketController extends Controller
 {
     /**
@@ -31,7 +31,16 @@ class TicketController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return Inertia::render('Tickets/AllTickets', [
+        $tickets->getCollection()->transform(function ($ticket) {
+            if ($ticket->assignedTo) {
+                $ticket->assigned_user_name = $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name;
+            } else {
+                $ticket->assigned_user_name = null;
+            }
+            return $ticket;
+        });
+        
+        return Inertia::render('AllTickets', [
             'tickets' => $tickets,
             'pageTitle' => 'All Tickets'
         ]);
