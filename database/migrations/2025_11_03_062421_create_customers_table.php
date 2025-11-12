@@ -27,12 +27,12 @@ return new class extends Migration
             $table->foreign('department_id')
                   ->references('id')
                   ->on('departments')
-                  ->onDelete('set null'); // Or 'restrict'
+                  ->onDelete('set null')
             
             $table->foreign('position_id')
                   ->references('id')
                   ->on('positions')
-                  ->onDelete('set null'); // Or 'restrict'
+                  ->onDelete('set null'); 
         });
     }
 
