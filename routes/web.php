@@ -1,13 +1,16 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HelpdeskTeamsController;
+use App\Http\Controllers\MyTicketController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\EmployeeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-use App\Http\Controllers\TicketController;
-use App\Http\Controllers\MyTicketController; 
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -24,11 +27,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Custom Ticket Routes
     Route::get('/my-tickets', [MyTicketController::class, 'index'])->name('tickets.my');
     Route::get('/my-tickets/create', [TicketController::class, 'create'])->name('tickets.create');
+    Route::get('/team/{teamId}/tickets', [\App\Http\Controllers\TeamTicketsController::class, 'index'])->name('team.tickets');
 
     Route::get('/all-tickets', [TicketController::class, 'index'])->name('tickets.all');
-
+    // Standard Ticket Resource Routes
+    Route::resource('tickets', TicketController::class);
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
     Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store');
@@ -39,6 +45,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update');
     Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
 
+    Route::get('/helpdeskteams', [HelpdeskTeamsController::class, 'index'])->name('helpdeskteams.index');
+
+    Route::get('/employee', [EmployeeController::class, 'index'])->name('employee.index');
 });
 
 require __DIR__.'/auth.php';

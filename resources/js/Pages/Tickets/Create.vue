@@ -5,17 +5,18 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Textarea from '@/Components/Textarea.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     customers: Array,
     teams: Array,
     users: Array,
     priorities: Array,
+    defaultTeamId: { type: [Number, String], default: null }, // New prop for default team
     stages: Array,
 });
 
-// 2. Kunin ang authenticated user object
+const authUser = usePage().props.auth.user;
 
 const form = useForm({
     customer_id: null,
@@ -23,8 +24,8 @@ const form = useForm({
     description: '',
     priority: 'Low',
     stage: 'Open',
-    team_id: null,
-    assigned_to_user_id: null,
+    team_id: props.defaultTeamId, // Set default team_id from prop
+    assigned_to_user_id: authUser.id,
     deadline: '',
 });
 

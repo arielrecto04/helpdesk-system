@@ -23,8 +23,6 @@ class TicketController extends Controller
      */
     public function index(): Response
     {
-
-
         $tickets = Ticket::query()
             ->with(['customer', 'team', 'assignedTo'])
             ->latest()
@@ -51,7 +49,7 @@ class TicketController extends Controller
      *
      * @return Response
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Tickets/Create', [
             'customers' => Customer::all(['id', 'first_name', 'last_name']),
@@ -59,6 +57,7 @@ class TicketController extends Controller
             'users' => User::all(['id', 'first_name', 'last_name']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
             'stages' => ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'],
+            'defaultTeamId' => $request->query('team_id'),
         ]);
     }
 
@@ -82,7 +81,6 @@ class TicketController extends Controller
         ]);
 
         $ticket = Ticket::create($validated);
-
         return redirect()->route('tickets.show', $ticket->id)->with('message', 'Ticket created successfully.');
     }
 
@@ -96,25 +94,22 @@ class TicketController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
-        // Check if user is admin
         $isAdmin = $user->hasRole('admin');
-        
-        // Check if user has access to the ticket's team
-        
         $hasTeamAccess = $user->teams()
             ->where('helpdesk_teams.id', $ticket->team_id)
             ->exists();
-        
-        // Authorize access
+
         if (!$isAdmin && !$hasTeamAccess) {
             abort(403, 'Unauthorized. You can only view tickets from your teams.');
         }
 
-        // Load relationships and return the view
+        // Load relationships and add assigned_user_name attribute
+        $ticket->load(['customer', 'assignedTo', 'team']);
+        $ticket->assigned_user_name = $ticket->assignedTo ? $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name : null;
+
         return Inertia::render('Tickets/Show', [
-            'ticket' => $ticket->load(['customer', 'assignedTo', 'team']),
-            'isAdmin' => $isAdmin
+            'ticket' => $ticket,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -198,8 +193,6 @@ class TicketController extends Controller
 
         $teamId = $ticket->team_id;
         $ticket->delete();
-
-        // Redirect to the team's ticket list after deletion
         return Redirect::route('team.tickets', ['teamId' => $teamId])
             ->with('message', 'Ticket deleted successfully.');
     }

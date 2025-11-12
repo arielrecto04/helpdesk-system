@@ -3,24 +3,9 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol role="list" class="flex items-center space-x-4">
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="h-5 w-5 flex-shrink-0 text-gray-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" /></svg>
-                            <Link :href="ticket.assigned_to_user_id === authUser.id ? route('tickets.my') : route('team.tickets', ticket.team_id)" class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                                {{ ticket.assigned_to_user_id === authUser.id ? 'My Tickets' : ticket.team.team_name + ' Tickets' }}
-                            </Link>
-                        </div>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="h-5 w-5 flex-shrink-0 text-gray-300" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" /></svg>
-                            <span class="ml-4 text-sm font-medium text-gray-500 text-gray-700">Ticket #{{ ticket.id }}</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Ticket #{{ ticket.id }} - {{ ticket.subject }}
+            </h2>
         </template>
 
         <div class="py-12">
@@ -45,7 +30,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">Ticket Information</h3>
-                                <dl class="grid grid-cols-1 gap-4">Showww vuw
+                                <dl class="grid grid-cols-1 gap-4">
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">ID</dt>
                                         <dd class="mt-1 text-sm text-gray-900 font-mono">#{{ ticket.id }}</dd>

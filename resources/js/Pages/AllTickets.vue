@@ -1,30 +1,23 @@
 <script setup>
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 
-
-
 const authUser = usePage().props.auth.user;
-const props = defineProps({
 
+const props = defineProps({
     tickets: {
         type: Object,
         required: true,
     },
-
     pageTitle: {
         type: String,
         required: true,
     }
-
 });
 
-
 const getPriorityClass = (priority) => {
-
     return {
         'bg-red-100 text-red-800': priority === 'Urgent',
         'bg-orange-100 text-orange-800': priority === 'High',
@@ -32,15 +25,14 @@ const getPriorityClass = (priority) => {
         'bg-gray-100 text-gray-800': priority === 'Low',
     };
 };
-const getStageClass = (stage) => {
 
+const getStageClass = (stage) => {
     return {
         'bg-green-100 text-green-800': ['Resolved', 'Closed'].includes(stage),
         'bg-blue-100 text-blue-800': stage === 'Open',
         'bg-yellow-100 text-yellow-800': stage === 'In Progress',
         'bg-purple-100 text-purple-800': stage === 'Pending Customer',
     };
-
 };
 
 const viewTicket = (ticketId) => {
@@ -52,7 +44,6 @@ const viewTicket = (ticketId) => {
 <template>
 
     <Head :title="pageTitle" />
-
     <AuthenticatedLayout>
         <template #header>
             <div class="flex justify-between items-center">
@@ -62,7 +53,6 @@ const viewTicket = (ticketId) => {
                 </Link>
             </div>
         </template>
-
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -115,7 +105,6 @@ const viewTicket = (ticketId) => {
                                                 {{ ticket.priority }}
                                             </span>
                                         </td>
-                                        
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ ticket.team ? ticket.team.team_name : 'N/A' }}
                                         </td>

@@ -27,6 +27,7 @@ const form = useForm({
     stage: props.ticket.stage,
     team_id: props.ticket.team_id,
     assigned_to_user_id: props.ticket.assigned_to_user_id,
+    deadline: props.ticket.deadline,
     deadline: formattedDeadline,
 });
 
