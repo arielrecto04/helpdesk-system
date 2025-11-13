@@ -9,6 +9,8 @@ use App\Http\Controllers\TeamTicketsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\CustomersController;
+use App\Http\Controllers\DepartmentsController;
+use App\Http\Controllers\PositionsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -71,6 +73,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/customers/{customer}', [CustomersController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomersController::class, 'destroy'])->name('customers.destroy');
 
+    Route::get('/departments', [DepartmentsController::class, 'index'])->name('departments.index');
+    Route::get('/departments/create', [DepartmentsController::class, 'create'])->name('departments.create');
+    Route::post('/departments', [DepartmentsController::class, 'store'])->name('departments.store');
+    Route::get('/departments/{department}', [DepartmentsController::class, 'show'])->name('departments.show');
+    Route::get('/departments/{department}/edit', [DepartmentsController::class, 'edit'])->name('departments.edit');
+    Route::put('/departments/{department}', [DepartmentsController::class, 'update'])->name('departments.update');
+    Route::delete('/departments/{department}', [DepartmentsController::class, 'destroy'])->name('departments.destroy');
+
+    Route::get('/positions', [PositionsController::class, 'index'])->name('positions.index');
+    Route::get('/positions/create', [PositionsController::class, 'create'])->name('positions.create');
+    Route::post('/positions', [PositionsController::class, 'store'])->name('positions.store');
+    Route::get('/positions/{position}', [PositionsController::class, 'show'])->name('positions.show');
+    Route::get('/positions/{position}/edit', [PositionsController::class, 'edit'])->name('positions.edit');
+    Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update');
+    Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy');
 
     Route::get('/employee', [EmployeeController::class, 'create'])->name('employee.index');
 

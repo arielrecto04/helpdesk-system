@@ -18,7 +18,6 @@ class UsersController extends Controller
      */
     public function index(): Response
     {
-        // Fetch paginated users
         $users = User::latest()->paginate(10)->through(fn ($user) => [
             'id' => $user->id,
             'name' => $user->first_name . ' ' . $user->last_name,
@@ -37,7 +36,7 @@ class UsersController extends Controller
      */
     public function create(): Response
     {
-        // Just render the creation form view
+
         return Inertia::render('Users/Create');
     }
 
@@ -46,23 +45,21 @@ class UsersController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Validate the incoming request data
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        // Create the new user
         User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
+            'middle_name' => $validated['middle_name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
-
-        // Redirect to the user index page with a success message
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 
@@ -72,7 +69,6 @@ class UsersController extends Controller
      */
     public function show(User $user): Response
     {
-        // Render the show view, passing the specific user
         return Inertia::render('Users/Show', [
             'user' => [
                 'id' => $user->id,
@@ -92,7 +88,6 @@ class UsersController extends Controller
      */
     public function edit(User $user): Response
     {
-        // Render the edit form, passing the user to pre-fill fields
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id,
@@ -134,10 +129,9 @@ class UsersController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
-        // Delete the user
+
         $user->delete();
 
-        // Redirect to the index page with a success message
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 }

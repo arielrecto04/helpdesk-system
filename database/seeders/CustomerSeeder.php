@@ -24,6 +24,7 @@ class CustomerSeeder extends Seeder
             ],
             [
                 'first_name' => 'Maria',
+                'middle_name' => 'Roberta',
                 'last_name' => 'Garcia',
                 'email' => 'maria.garcia@company.com',
                 'phone_number' => '123-456-7891'

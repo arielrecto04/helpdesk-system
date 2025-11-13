@@ -3,31 +3,58 @@
 namespace Database\Seeders;
 
 use App\Models\Position;
+use App\Models\Department;
 use Illuminate\Database\Seeder;
 
 class PositionSeeder extends Seeder
 {
     public function run(): void
     {
-        $positions = [
-            ['position_title' => 'Manager'],
-            ['position_title' => 'Team Lead'],
-            ['position_title' => 'Senior Developer'],
-            ['position_title' => 'Junior Developer'],
-            ['position_title' => 'Business Analyst'],
-            ['position_title' => 'Project Manager'],
-            ['position_title' => 'System Administrator'],
-            ['position_title' => 'Network Engineer'],
-            ['position_title' => 'Quality Assurance Engineer'],
-            ['position_title' => 'Data Analyst'],
-            ['position_title' => 'HR Specialist'],
-            ['position_title' => 'Accountant'],
-            ['position_title' => 'Marketing Specialist'],
-            ['position_title' => 'Sales Representative']
+        $departmentPositions = [
+            
+            'Information Technology' => [
+                'IT Manager',
+                'Team Lead',
+                'Senior Developer',
+                'Junior Developer',
+                'System Administrator',
+                'Network Engineer',
+                'Quality Assurance Engineer',
+                'Data Analyst'
+            ],
+            'Human Resources' => [
+                'HR Manager',
+                'HR Specialist',
+            ],
+            'Finance' => [
+                'Finance Manager',
+                'Accountant',
+            ],
+            'Sales & Marketing' => [
+                'Sales Manager',
+                'Marketing Specialist',
+                'Sales Representative'
+            ],
+            'Operations' => [
+                'Operations Manager',
+                'Project Manager',
+                'Business Analyst',
+            ]
         ];
 
-        foreach ($positions as $position) {
-            Position::create($position);
+        foreach ($departmentPositions as $departmentName => $positions) {
+            $department = Department::where('department_name', $departmentName)->first();
+
+            if ($department) {
+                foreach ($positions as $positionTitle) {
+                    Position::create([
+                        'department_id' => $department->id,
+                        'position_title' => $positionTitle,
+                    ]);
+                }
+            } else {
+                $this->command->warn("Department not found: '$departmentName'. Skipping positions under it.");
+            }
         }
     }
 }

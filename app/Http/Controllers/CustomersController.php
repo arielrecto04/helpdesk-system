@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\Department; // <-- Idagdag ito
+use App\Models\Department; 
 use App\Models\Position;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
-// Tinanggal ko ang 'Hash' at 'Rules' kasi hindi naman kailangan para sa Customer (walang password)
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Arr; // Ginamit ko ito para sa update
-use Illuminate\Validation\Rule; // Importante ito para sa unique validation check
+use Illuminate\Support\Arr; 
+use Illuminate\Validation\Rule; 
 
 class CustomersController extends Controller
 {
@@ -20,9 +19,7 @@ class CustomersController extends Controller
      */
     public function index(): Response
     {
-        // Fetch paginated customers
-        // Pinalitan ko ang $user ng $customer para malinaw
-        $customers = Customer::with(['department', 'position']) // <-- 1. MAHALAGA: Eager load
+        $customers = Customer::with(['department', 'position']) 
             ->latest()
             ->paginate(10)
             ->through(fn ($customer) => [
@@ -49,10 +46,10 @@ class CustomersController extends Controller
      */
     public function create(): Response
     {
-        // Inayos ko ang path para consistent. 'Customers' (plural) na folder.
+
         return Inertia::render('Customer/Create', [
-            'departments' => Department::all(['id', 'department_name']), // Palitan kung iba ang name
-            'positions' => Position::all(['id', 'position_title']), // Palitan kung iba ang name
+            'departments' => Department::all(['id', 'department_name']),
+            'positions' => Position::all(['id', 'position_title', 'department_id']),
         ]);
     }
 
@@ -61,21 +58,18 @@ class CustomersController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Validate the incoming request data
+
         $validated = $request->validate([
-            'first_name' => 'required|string|max:100', // Inayos ang max length
-            'middle_name' => 'nullable|string|max:100', // Inayos ang max length
-            'last_name' => 'required|string|max:100', // Inayos ang max length
-            'phone_number' => 'nullable|string|max:20', // Inayos para maging nullable at max:20
+            'first_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'phone_number' => 'nullable|string|max:20',
             'email' => 'required|string|email|max:255|unique:'.Customer::class,
-            'department_id' => 'nullable|exists:departments,id', // Inayos para maging nullable
-            'position_id' => 'nullable|exists:positions,id', // Inayos para maging nullable
+            'department_id' => 'nullable|exists:departments,id',
+            'position_id' => 'nullable|exists:positions,id',
         ]);
 
-        // Create the new customer
         Customer::create($validated); 
-
-        // Redirect to the customer index page with a success message
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
@@ -122,9 +116,8 @@ class CustomersController extends Controller
                 'department_id' => $customer->department_id,
                 'position_id' => $customer->position_id,
             ],
-
             'departments' => Department::all(['id', 'department_name']),
-            'positions' => Position::all(['id', 'position_title']), 
+            'positions' => Position::all(['id', 'position_title', 'department_id']), 
         ]);
     }
 
@@ -132,16 +125,16 @@ class CustomersController extends Controller
      * Update the specified resource in storage.
      * Pinalitan ko ang $user ng $customer
      */
+    
     public function update(Request $request, Customer $customer): RedirectResponse
     {
-        // Validate the request
         $validated = $request->validate([
-            'first_name' => 'required|string|max:100', // Inayos ang max length
-            'middle_name' => 'nullable|string|max:100', // Inayos ang max length
-            'last_name' => 'required|string|max:100', // Inayos ang max length
-            'phone_number' => 'nullable|string|max:20', // Inayos para maging nullable at max:20
-            'department_id' => 'nullable|exists:departments,id', // Inayos para maging nullable
-            'position_id' => 'nullable|exists:positions,id', // Inayos para maging nullable
+            'first_name' => 'required|string|max:100',
+            'middle_name' => 'nullable|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'phone_number' => 'nullable|string|max:20',
+            'department_id' => 'nullable|exists:departments,id',
+            'position_id' => 'nullable|exists:positions,id',
             'email' => [
                 'required',
                 'string',
@@ -152,7 +145,6 @@ class CustomersController extends Controller
         ]);
 
         $customer->update($validated);
-
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }
 
@@ -162,10 +154,7 @@ class CustomersController extends Controller
      */
     public function destroy(Customer $customer): RedirectResponse
     {
-        // Delete the customer
         $customer->delete();
-
-        // Inayos ko ang success message
         return redirect()->route('customers.index')->with('success', 'Customer deleted successfully.');
     }
 }

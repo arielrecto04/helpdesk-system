@@ -4,22 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Position extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
+    public $timestamps = false; 
 
     protected $fillable = [
-        'position_title'
+        'position_title',
+        'department_id',
     ];
 
-    /**
-     * Get all customers with this position.
-     */
-    public function customers()
+    public function department(): BelongsTo
     {
-        return $this->hasMany(Customer::class);
+        return $this->belongsTo(Department::class);
     }
 }

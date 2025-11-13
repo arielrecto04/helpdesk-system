@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreign('department_id')
                   ->references('id')
                   ->on('departments')
-                  ->onDelete('set null')
+                  ->onDelete('set null');
             
             $table->foreign('position_id')
                   ->references('id')
@@ -35,7 +35,6 @@ return new class extends Migration
                   ->onDelete('set null'); 
         });
     }
-
     /**
      * Reverse the migrations.
      */

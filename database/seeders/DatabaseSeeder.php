@@ -35,6 +35,7 @@ class DatabaseSeeder extends Seeder
         for ($i = 1; $i <= 5; $i++) {
             User::create([
                 'first_name' => "Support",
+                'middle_name' => "Agent",
                 'last_name' => "Agent {$i}",
                 'email' => "agent{$i}@helpdesk.com",
                 'password' => bcrypt('password'),

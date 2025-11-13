@@ -62,11 +62,6 @@ const viewCustomer = (customerId) => {
                                 </tbody>
                             </table>
                         </div>
-                        
-                        <!-- Pagination -->
-                        <!-- <div v-if="customers.data.length > 0" class="mt-6">
-                            <Pagination :links="customers.links" />
-                        </div> -->
 
                     </div>
                 </div>

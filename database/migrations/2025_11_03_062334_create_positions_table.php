@@ -13,10 +13,15 @@ return new class extends Migration
     {
         Schema::create('positions', function (Blueprint $table) {
             $table->id();
-            $table->string('position_title', 100)->unique();
+            $table->unsignedBigInteger('department_id'); 
+            $table->string('position_title', 100);
+            $table->foreign('department_id')
+                  ->references('id')
+                  ->on('departments')
+                  ->onDelete('cascade');
+            $table->unique(['department_id', 'position_title']);
         });
     }
-
     /**
      * Reverse the migrations.
      */
