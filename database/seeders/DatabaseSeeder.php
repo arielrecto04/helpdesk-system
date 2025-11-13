@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create base entities first
+
         $this->call([
             DepartmentSeeder::class,
             PositionSeeder::class,
@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
             HelpdeskTeamSeeder::class,
         ]);
 
-        // Create admin user
         $admin = User::create([
             'first_name' => 'System',
             'last_name' => 'Administrator',
@@ -31,7 +30,6 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        // Create support agents
         for ($i = 1; $i <= 5; $i++) {
             User::create([
                 'first_name' => "Support",

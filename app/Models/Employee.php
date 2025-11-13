@@ -5,28 +5,26 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
 
-class Customer extends Model
+class Employee extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'first_name',
         'middle_name',
         'last_name',
         'email',
         'phone_number',
         'department_id',
-        'position_id'
+        'position_id',
+        'employee_code',
+        'hire_date',
     ];
 
-
-    /**
-     * Awtomatikong i-capitalize ang first name bago i-save.
-     */
     protected function firstName(): Attribute
     {
         return Attribute::make(
@@ -34,20 +32,13 @@ class Customer extends Model
         );
     }
 
-    /**
-     * Awtomatikong i-capitalize ang middle name bago i-save.
-     */
     protected function middleName(): Attribute
     {
         return Attribute::make(
-
             set: fn ($value) => $value ? Str::title($value) : null,
         );
     }
 
-    /**
-     * Awtomatikong i-capitalize ang last name bago i-save.
-     */
     protected function lastName(): Attribute
     {
         return Attribute::make(
@@ -55,17 +46,16 @@ class Customer extends Model
         );
     }
 
-
     /**
-     * Get all tickets created by this customer.
+     * Kunin ang (opsyonal) na User account na naka-link sa employee na ito.
      */
-    public function tickets(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(Ticket::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * Get the customer's department.
+     * Kunin ang department ng employee.
      */
     public function department(): BelongsTo
     {
@@ -73,7 +63,7 @@ class Customer extends Model
     }
 
     /**
-     * Get the customer's position.
+     * Kunin ang position ng employee.
      */
     public function position(): BelongsTo
     {
