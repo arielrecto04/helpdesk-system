@@ -84,7 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/positions', [PositionsController::class, 'index'])->name('positions.index');
     Route::get('/positions/create', [PositionsController::class, 'create'])->name('positions.create');
     Route::post('/positions', [PositionsController::class, 'store'])->name('positions.store');
-    Route::get('/positions/{position}', [PositionsController::class, 'show'])->name('positions.show');
+    // Route::get('/positions/{position}', [PositionsController::class, 'show'])->name('positions.show');
     Route::get('/positions/{position}/edit', [PositionsController::class, 'edit'])->name('positions.edit');
     Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update');
     Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy');

@@ -31,7 +31,7 @@ class DepartmentsController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Departments/Create');
+        return Inertia::render('Department/Create');
     }
 
     /**
@@ -54,7 +54,7 @@ class DepartmentsController extends Controller
 
     public function edit(Department $department): Response 
     {
-        return Inertia::render('Departments/Edit', [
+        return Inertia::render('Department/Edit', [
             'department' => $department,
         ]);
     }

@@ -30,7 +30,7 @@ class PositionsController extends Controller
     {
         $department_id = $request->query('department');
         
-        return Inertia::render('Position/Create', [
+        return Inertia::render('Positions/Create', [
             'department_id' => $department_id,
             'departments' => Department::all(['id', 'department_name']),
         ]);
@@ -61,19 +61,19 @@ class PositionsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Position $position): Response
-    {
-        return Inertia::render('Position/Show', [
-            'position' => $position->load('department')
-        ]);
-    }
+    // public function show(Position $position): Response
+    // {
+    //     return Inertia::render('Position/Show', [
+    //         'position' => $position->load('department')
+    //     ]);
+    // }
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Position $position): Response
     {
-        return Inertia::render('Position/Edit', [
+        return Inertia::render('Positions/Edit', [
             'position' => $position,
             'departments' => Department::all(['id', 'department_name']),
         ]);

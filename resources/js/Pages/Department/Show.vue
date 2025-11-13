@@ -10,8 +10,6 @@
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                
-                <!-- (Ito ang Department Info box, tama na ito) -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
@@ -40,44 +38,36 @@
                     </div>
                 </div>
 
-                <!-- --- INAYOS: Ito ang "Positions" Card --- -->
                 <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-medium text-gray-900">
                                 Positions in this Department
                             </h3>
-                            <!-- INAYOS: Ang 'Create' button ay nagpapadala na ng department_id -->
                             <Link :href="route('positions.create', { department: department.id })" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Create New Position
                             </Link>
                         </div>
 
-                        <!-- Positions Table -->
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position Title</th>
-                                    <!-- INAYOS: Idinagdag ang 'Actions' column -->
                                     <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <tr v-if="positions.data.length === 0">
-                                    <!-- INAYOS: Ginawang 3 ang colspan -->
                                     <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No positions found for this department.</td>
                                 </tr>
-                                <!-- INAYOS: Tinanggal ang @click sa <tr> -->
                                 <tr v-for="position in positions.data" :key="position.id" class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ position.id }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        <!-- INAYOS: Ginawang clickable ang pangalan -->
-                                        <Link :href="route('positions.show', { position: position.id })" class="text-indigo-600 hover:text-indigo-900">
+                                        <h1 class="text-indigo-600 hover:text-indigo-900">
                                             {{ position.position_title }}
-                                        </Link>
+                                        </h1>
                                     </td>
-                                    <!-- INAYOS: Idinagdag ang mga totoong buttons -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right space-x-2">
                                         <Link :href="route('positions.edit', { position: position.id })" class="text-indigo-600 hover:text-indigo-900">
                                             Edit
@@ -95,8 +85,6 @@
                     </div>
                 </div>
 
-
-                <!-- Modal para sa Department Deletion (Walang binago) -->
                 <Modal :show="confirmingDepartmentDeletion" @close="closeDepartmentModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900"> 
@@ -119,7 +107,6 @@
                     </div>
                 </Modal>
 
-                <!-- --- INAYOS: Bagong Modal para sa Position Deletion --- -->
                 <Modal :show="confirmingPositionDeletion" @close="closePositionModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900"> 
@@ -142,8 +129,6 @@
                         </div>
                     </div>
                 </Modal>
-                <!-- --- End ng Bagong Modal --- -->
-
             </div>
         </div>
     </AuthenticatedLayout>
@@ -159,23 +144,20 @@ import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import Pagination from '@/Components/Pagination.vue'; 
 
-
 const props = defineProps({
     department: {
         type: Object,
         required: true
     },
     positions: {
-        type: Object, // Ito ay pagination object
+        type: Object,
         required: true
     }
 });
 
-// --- Logic para sa Department Deletion ---
-const confirmingDepartmentDeletion = ref(false);
-// INAYOS: Gumawa ng sariling form para sa department delete
-const departmentDeleteForm = useForm({}); 
 
+const confirmingDepartmentDeletion = ref(false);
+const departmentDeleteForm = useForm({}); 
 const confirmDepartmentDeletion = () => {
     confirmingDepartmentDeletion.value = true;
 };
@@ -192,40 +174,29 @@ const closeDepartmentModal = () => {
     confirmingDepartmentDeletion.value = false;
 };
 
-// --- INAYOS: Bagong Logic para sa Position Deletion ---
 const confirmingPositionDeletion = ref(false);
-const positionToDelete = ref(null); // Itatabi natin dito ang position na ide-delete
-const positionDeleteForm = useForm({}); // Sariling form para sa position delete
+const positionToDelete = ref(null);
+const positionDeleteForm = useForm({});
 
-// Itatakda nito kung aling position ang buburahin at bubuksan ang modal
 const confirmPositionDeletion = (position) => {
     positionToDelete.value = position;
     confirmingPositionDeletion.value = true;
 };
 
-// Ito ang tatakbo kapag kinlick ang "Delete Position" button
 const deletePosition = () => {
     positionDeleteForm.delete(route('positions.destroy', positionToDelete.value.id), {
         preserveScroll: true,
         onSuccess: () => {
-            closePositionModal(); // Isara ang modal kapag successful
+            closePositionModal();
         },
         onFinish: () => {
-            // Walang gagawin dito para manatili ang modal kung sakaling mag-error
         },
     });
 };
 
-// Isasara ang position delete modal
 const closePositionModal = () => {
     confirmingPositionDeletion.value = false;
     positionToDelete.value = null;
 };
-// --- End ng bagong logic ---
 
-// Ang function na ito ay HINDI NA GINAGAMIT sa <tr>, 
-// pero iniiwan natin kung sakaling kailanganin pa.
-const viewPosition = (positionId) => {
-    router.visit(route('positions.show', { position: positionId }));
-};
 </script>
