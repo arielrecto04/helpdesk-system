@@ -73,6 +73,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/customers/{customer}', [CustomersController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomersController::class, 'destroy'])->name('customers.destroy');
 
+    Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
+    Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+    Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+    Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employees.edit');
+    Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
+    Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+
+    Route::get('/employees/{employee}/create-account', [EmployeeController::class, 'createAccount'])->name('employees.createAccount');
+Route::post('/employees/{employee}/store-account', [EmployeeController::class, 'storeAccount'])->name('employees.storeAccount');
+
     Route::get('/departments', [DepartmentsController::class, 'index'])->name('departments.index');
     Route::get('/departments/create', [DepartmentsController::class, 'create'])->name('departments.create');
     Route::post('/departments', [DepartmentsController::class, 'store'])->name('departments.store');
@@ -88,8 +99,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/positions/{position}/edit', [PositionsController::class, 'edit'])->name('positions.edit');
     Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update');
     Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy');
-
-    Route::get('/employee', [EmployeeController::class, 'create'])->name('employee.index');
 
 });
 

@@ -24,6 +24,9 @@ class Employee extends Model
         'employee_code',
         'hire_date',
     ];
+    protected $casts = [
+        'hire_date' => 'date',
+    ];
 
     protected function firstName(): Attribute
     {

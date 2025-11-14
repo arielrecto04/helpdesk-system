@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class UsersController extends Controller
 {

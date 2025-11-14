@@ -7,11 +7,11 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
-    user: Object, // Controller passes the user object
+    user: Object,
 });
 
 const form = useForm({
-    _method: 'PUT', // Specify the method for resource update
+    _method: 'PUT',
     first_name: props.user.first_name,
     middle_name: props.user.middle_name ?? '',
     last_name: props.user.last_name,
@@ -21,13 +21,11 @@ const form = useForm({
 });
 
 const submit = () => {
-    // Send the form data to the 'users.update' route
     form.post(route('users.update', props.user.id));
 };
 
-// UPDATED: Compute the user's full name for display, including middle name
 const fullName = [props.user.first_name, props.user.middle_name, props.user.last_name]
-    .filter(Boolean) // Removes null/undefined/empty strings
+    .filter(Boolean) 
     .join(' ');
 
 </script>
