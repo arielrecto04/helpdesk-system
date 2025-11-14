@@ -5,14 +5,10 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3'; 
-// --- INAYOS: Idinagdag ang 'watch' sa import ---
 import { computed, watch } from 'vue'; 
 
 const props = defineProps({
     customer: Object,
-    departments: Array,
-    // Ang 'positions' prop ay dapat may 'id', 'position_title', at 'department_id'
-    positions: Array,
 });
 
 const form = useForm({
@@ -21,36 +17,11 @@ const form = useForm({
     last_name: props.customer.last_name,
     email: props.customer.email,
     phone_number: props.customer.phone_number ?? '',
-    department_id: props.customer.department_id,
-    position_id: props.customer.position_id,
 });
 
 const submit = () => {
     form.put(route('customers.update', { customer: props.customer.id }));
 };
-
-// Ito ay TAMA NA
-const filteredPositions = computed(() => {
-    if (!form.department_id) {
-        return [];
-    }
-    return props.positions.filter(pos => pos.department_id == form.department_id);
-});
-
-// Ito ay TAMA NA (dahil na-import na natin ang 'watch')
-watch(() => form.department_id, (newDeptId) => {
-    // I-check kung ang bagong department ID ay iba sa original
-    // Kung iba, i-reset. Kung nag-match, huwag (para di ma-reset kung binalik)
-    // Pero mas simple kung i-re-reset na lang palagi
-    
-    // --> Kung ang piniling department ay HINDI ang original na department...
-    if (newDeptId !== props.customer.department_id) {
-        form.position_id = ''; // I-reset ang position
-    } else {
-        // Kung ibinalik sa original na department, ibalik din ang original position
-        form.position_id = props.customer.position_id;
-    }
-});
 
 const fullName = computed(() =>
     [props.customer.first_name, props.customer.middle_name, props.customer.last_name]
@@ -139,36 +110,6 @@ const fullName = computed(() =>
                                 <InputError class="mt-2" :message="form.errors.phone_number" />
                             </div>
                             
-
-                            <div class="mt-4">
-                                <InputLabel for="department_id" value="Department (Optional)" />
-                                <select
-                                    id="department_id"
-                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                    v-model="form.department_id"
-                                >
-                                    <option value="">Select a Department</option>
-                                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                                        {{ dept.department_name }} </option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.department_id" />
-                            </div>
-
-                            <div class="mt-4">
-                                <InputLabel for="position_id" value="Position (Optional)" />
-                                <select
-                                    id="position_id"
-                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                    v-model="form.position_id"
-                                    :disabled="!form.department_id" 
-                                >
-                                    <option value="">{{ form.department_id ? 'Select a Position' : 'Please select a department first' }}</option>
-                                    
-                                    <option v-for="pos in filteredPositions" :key="pos.id" :value="pos.id">
-                                        {{ pos.position_title }} </option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.position_id" />
-                            </div>
                             <div class="flex items-center justify-end mt-6">
                                 <Link :href="route('customers.index')" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel

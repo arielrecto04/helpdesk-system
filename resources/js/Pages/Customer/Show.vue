@@ -55,14 +55,6 @@
                                         <dt class="text-sm font-medium text-gray-500">Phone</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ customer.phone_number }}</dd>
                                     </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Department</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ customer.department_name }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Position</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ customer.position_name }}</dd>
-                                    </div>
                                 </dl>
                             </div>
                             <div>
@@ -127,7 +119,6 @@ const props = defineProps({
 
 const confirmingCustomerDeletion = ref(false);
 const form = useForm({});
-
 const confirmCustomerDeletion = () => {
     confirmingCustomerDeletion.value = true;
 };
@@ -143,6 +134,5 @@ const deleteCustomer = () => {
 const closeModal = () => {
     confirmingCustomerDeletion.value = false;
 };
-
 
 </script>

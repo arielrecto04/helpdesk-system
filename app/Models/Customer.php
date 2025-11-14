@@ -19,14 +19,8 @@ class Customer extends Model
         'last_name',
         'email',
         'phone_number',
-        'department_id',
-        'position_id'
     ];
 
-
-    /**
-     * Awtomatikong i-capitalize ang first name bago i-save.
-     */
     protected function firstName(): Attribute
     {
         return Attribute::make(
@@ -34,9 +28,6 @@ class Customer extends Model
         );
     }
 
-    /**
-     * Awtomatikong i-capitalize ang middle name bago i-save.
-     */
     protected function middleName(): Attribute
     {
         return Attribute::make(
@@ -45,9 +36,6 @@ class Customer extends Model
         );
     }
 
-    /**
-     * Awtomatikong i-capitalize ang last name bago i-save.
-     */
     protected function lastName(): Attribute
     {
         return Attribute::make(
@@ -55,28 +43,9 @@ class Customer extends Model
         );
     }
 
-
-    /**
-     * Get all tickets created by this customer.
-     */
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
     }
 
-    /**
-     * Get the customer's department.
-     */
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class);
-    }
-
-    /**
-     * Get the customer's position.
-     */
-    public function position(): BelongsTo
-    {
-        return $this->belongsTo(Position::class);
-    }
 }

@@ -11,8 +11,6 @@ class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-        $departments = Department::all();
-        $positions = Position::all();
 
         $customers = [
             [
@@ -52,9 +50,6 @@ class CustomerSeeder extends Seeder
         ];
 
         foreach ($customers as $customer) {
-            $customer['department_id'] = $departments->random()->id;
-            $customer['position_id'] = $positions->random()->id;
-            
             Customer::create($customer);
         }
     }

@@ -19,8 +19,7 @@ class CustomersController extends Controller
      */
     public function index(): Response
     {
-        $customers = Customer::with(['department', 'position']) 
-            ->latest()
+        $customers = Customer::latest()
             ->paginate(10)
             ->through(fn ($customer) => [
                 'id' => $customer->id,
@@ -30,8 +29,6 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
-                'department_name' => $customer->department?->department_name, 
-                'position_name' => $customer->position?->position_title,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
             ]);
@@ -47,10 +44,7 @@ class CustomersController extends Controller
     public function create(): Response
     {
 
-        return Inertia::render('Customer/Create', [
-            'departments' => Department::all(['id', 'department_name']),
-            'positions' => Position::all(['id', 'position_title', 'department_id']),
-        ]);
+        return Inertia::render('Customer/Create');
     }
 
     /**
@@ -65,8 +59,6 @@ class CustomersController extends Controller
             'last_name' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
             'email' => 'required|string|email|max:255|unique:'.Customer::class,
-            'department_id' => 'nullable|exists:departments,id',
-            'position_id' => 'nullable|exists:positions,id',
         ]);
 
         Customer::create($validated); 
@@ -79,7 +71,6 @@ class CustomersController extends Controller
      */
     public function show(Customer $customer): Response
     {
-        $customer->load(['department', 'position']);
 
         return Inertia::render('Customer/Show', [
             'customer' => [
@@ -90,8 +81,6 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
-                'department_name' => $customer->department?->department_name, 
-                'position_name' => $customer->position?->position_title,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
             ]
@@ -113,11 +102,7 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
-                'department_id' => $customer->department_id,
-                'position_id' => $customer->position_id,
             ],
-            'departments' => Department::all(['id', 'department_name']),
-            'positions' => Position::all(['id', 'position_title', 'department_id']), 
         ]);
     }
 
@@ -133,8 +118,6 @@ class CustomersController extends Controller
             'middle_name' => 'nullable|string|max:100',
             'last_name' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
-            'department_id' => 'nullable|exists:departments,id',
-            'position_id' => 'nullable|exists:positions,id',
             'email' => [
                 'required',
                 'string',
@@ -148,10 +131,6 @@ class CustomersController extends Controller
         return redirect()->route('customers.index')->with('success', 'Customer updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * Pinalitan ko ang $customers ng $customer
-     */
     public function destroy(Customer $customer): RedirectResponse
     {
         $customer->delete();

@@ -5,12 +5,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
-
-const props = defineProps({
-    departments: Array,
-    positions: Array,
-});
 
 const form = useForm({
     first_name: '',
@@ -18,20 +12,6 @@ const form = useForm({
     last_name: '',
     email: '',
     phone_number: '',
-    department_id: '',
-    position_id: '',
-});
-
-const filteredPositions = computed(() => {
-    if (!form.department_id) {
-        return [];
-    }
-
-    return props.positions.filter(pos => pos.department_id == form.department_id);
-});
-
-watch(() => form.department_id, (newDeptId) => {
-    form.position_id = '';
 });
 
 const submit = () => {
@@ -117,36 +97,6 @@ const submit = () => {
                                     autocomplete="tel"
                                     />
                                 <InputError class="mt-2" :message="form.errors.phone_number" />
-                            </div>
-
-                            <div class="mt-4">
-                                <InputLabel for="department_id" value="Department (Optional)" />
-                                <select
-                                    id="department_id"
-                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                    v-model="form.department_id"
-                                >
-                                    <option value="">Select a Department</option>
-                                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                                        {{ dept.department_name }} </option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.department_id" />
-                            </div>
-                            
-
-                            <div class="mt-4">
-                                <InputLabel for="position_id" value="Position (Optional)" />
-                                <select
-                                    id="position_id"
-                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                    v-model="form.position_id"
-                                    :disabled="!form.department_id" >
-                                    <option value="">{{ form.department_id ? 'Select a Position' : 'Please select a department first' }}</option>
-                                    
-                                    <option v-for="pos in filteredPositions" :key="pos.id" :value="pos.id">
-                                        {{ pos.position_title }} </option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.position_id" />
                             </div>
 
                             <div class="flex items-center justify-end mt-6">
