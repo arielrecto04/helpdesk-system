@@ -1,0 +1,100 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+
+const props = defineProps({
+    company: Object,
+});
+
+const form = useForm({
+    name: props.company.name,
+    address: props.company.address,
+    phone: props.company.phone,
+    email: props.company.email,
+});
+
+const submit = () => {
+    form.put(route('companies.update', props.company.id));
+};
+
+</script>
+
+<template>
+    <Head :title="'Edit Company: ' + company.name" />
+    <AuthenticatedLayout>
+        <template #header>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                Edit Company: <span class="font-bold">{{ company.name }}</span>
+            </h2>
+        </template>
+
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 bg-white border-b border-gray-200">
+                        <form @submit.prevent="submit">
+                            <div>
+                                <InputLabel for="name" value="Company Name" />
+                                <TextInput
+                                    id="name"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.name"
+                                    required
+                                    autofocus
+                                />
+                                <InputError class="mt-2" :message="form.errors.name" />
+                            </div>
+                            <div>
+                                <InputLabel for="address" value="Address" />
+                                <TextInput
+                                    id="address"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.address"
+                                    required
+                                    autofocus
+                                />
+                                <InputError class="mt-2" :message="form.errors.address" />
+                            </div>
+                            <div>
+                                <InputLabel for="phone" value="Phone" />
+                                <TextInput
+                                    id="phone"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.phone"
+                                    required
+                                />
+                                <InputError class="mt-2" :message="form.errors.phone" />
+                            </div>
+                            <div>
+                                <InputLabel for="email" value="Email" />
+                                <TextInput
+                                    id="email"
+                                    type="email"
+                                    class="mt-1 block w-full"
+                                    v-model="form.email"
+                                    required
+                                />
+                                <InputError class="mt-2" :message="form.errors.email" />
+                            </div>
+                            <div class="flex items-center justify-end mt-6">
+                                <Link :href="route('companies.show', company.id)" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                    Cancel
+                                </Link>
+                                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                    Update Company
+                                </PrimaryButton>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>

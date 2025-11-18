@@ -12,6 +12,7 @@ use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\PositionsController;
 use App\Http\Controllers\TagsController;
+use App\Http\Controllers\CompaniesController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -108,6 +109,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tags/{tag}/edit', [TagsController::class, 'edit'])->name('tags.edit');
     Route::put('/tags/{tag}', [TagsController::class, 'update'])->name('tags.update');
     Route::delete('/tags/{tag}', [TagsController::class, 'destroy'])->name('tags.destroy');
+
+    Route::get('/companies', [CompaniesController::class, 'index'])->name('companies.index');
+    Route::get('/companies/create', [CompaniesController::class, 'create'])->name('companies.create');
+    Route::post('/companies', [CompaniesController::class, 'store'])->name('companies.store');
+    Route::get('/companies/{company}', [CompaniesController::class, 'show'])->name('companies.show');
+    Route::get('/companies/{company}/edit', [CompaniesController::class, 'edit'])->name('companies.edit');
+    Route::put('/companies/{company}', [CompaniesController::class, 'update'])->name('companies.update');
+    Route::delete('/companies/{company}', [CompaniesController::class, 'destroy'])->name('companies.destroy');
+
+    // Route::get('/roles', [CompaniesController::class, 'index'])->name('roles.index');
+    // Route::get('/roles/create', [CompaniesController::class, 'create'])->name('roles.create');
+    // Route::post('/roles', [CompaniesController::class, 'store'])->name('roles.store');
+    // Route::get('/roles/{role}', [CompaniesController::class, 'show'])->name('roles.show');
+    // Route::get('/roles/{role}/edit', [CompaniesController::class, 'edit'])->name('roles.edit');
+    // Route::put('/roles/{role}', [CompaniesController::class, 'update'])->name('roles.update');
+    // Route::delete('/roles/{role}', [CompaniesController::class, 'destroy'])->name('roles.destroy');
 
 });
 
