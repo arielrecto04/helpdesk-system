@@ -36,11 +36,13 @@ class Ticket extends Model
         return $this->belongsTo(HelpdeskTeam::class, 'team_id');
     }
 
-    /**
-     * Get the user assigned to the ticket.
-     */
     public function assignedTo()
     {
         return $this->belongsTo(User::class, 'assigned_to_user_id');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'tag_ticket');
     }
 }

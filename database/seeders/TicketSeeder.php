@@ -4,16 +4,29 @@ namespace Database\Seeders;
 
 use App\Models\Ticket;
 use Illuminate\Database\Seeder;
+use App\Models\Tag; // <-- IDINAGDAG
+use App\Models\Customer; // <-- Idinagdag para mas malinis
+use App\Models\HelpdeskTeam; // <-- Idinagdag para mas malinis
+use App\Models\User; // <-- Idinagdag para mas malinis
 
 class TicketSeeder extends Seeder
 {
     public function run(): void
     {
-        $customers = \App\Models\Customer::all();
-        $teams = \App\Models\HelpdeskTeam::all();
-        $agents = \App\Models\User::whereHas('roles', function($query) {
+        // Ginamit ang na-import na models
+        $customers = Customer::all();
+        $teams = HelpdeskTeam::all();
+        $agents = User::whereHas('roles', function($query) {
             $query->where('name', 'Support Agent');
         })->get();
+
+
+        $tagIds = Tag::pluck('id');
+
+        if ($customers->isEmpty() || $teams->isEmpty() || $agents->isEmpty() || $tagIds->isEmpty()) {
+            $this->command->error('ERROR: Paki-check kung may laman ang Customer, Team, User(Agent), at Tag seeders bago i-run ang TicketSeeder.');
+            return;
+        }
 
         $tickets = [
             [
@@ -53,12 +66,21 @@ class TicketSeeder extends Seeder
             ]
         ];
 
-        foreach ($tickets as $ticket) {
-            $ticket['customer_id'] = $customers->random()->id;
-            $ticket['team_id'] = $teams->random()->id;
-            $ticket['assigned_to_user_id'] = $agents->random()->id;
+        // INAYOS ANG LOOP
+        foreach ($tickets as $ticketData) { // Pinalitan ang $ticket ng $ticketData
+            $ticketData['customer_id'] = $customers->random()->id;
+            $ticketData['team_id'] = $teams->random()->id;
+            $ticketData['assigned_to_user_id'] = $agents->random()->id;
             
-            Ticket::create($ticket);
+            // I-CREATE ANG TICKET AT I-SAVE SA VARIABLE
+            $newTicket = Ticket::create($ticketData);
+            
+            // I-ATTACH ANG RANDOM TAGS
+            // Kumuha ng 1 hanggang 3 random tags
+            $randomTagIds = $tagIds->random(rand(1, min(3, $tagIds->count())));
+            
+            // I-attach ang mga ito sa ticket na kakagawa lang
+            $newTicket->tags()->attach($randomTagIds);
         }
     }
 }

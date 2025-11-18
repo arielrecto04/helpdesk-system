@@ -5,18 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class HelpdeskTeam extends Model
+class Tag extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
-        'team_name'
+        'name',
     ];
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'team_id');
+        return $this->belongsToMany(Ticket::class, 'tag_ticket');
     }
 }

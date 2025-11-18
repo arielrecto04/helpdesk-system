@@ -23,6 +23,7 @@ class Employee extends Model
         'position_id',
         'employee_code',
         'hire_date',
+        'company_id',
     ];
     protected $casts = [
         'hire_date' => 'date',
@@ -71,5 +72,10 @@ class Employee extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

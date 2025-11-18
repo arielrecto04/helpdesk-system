@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Company;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             // --- Foreign Keys ---
+            $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('set null');
             $table->foreign('user_id')
                   ->references('id')
                   ->on('users')
@@ -38,7 +40,6 @@ return new class extends Migration
                   ->references('id')
                   ->on('departments')
                   ->onDelete('set null');
-
             $table->foreign('position_id')
                   ->references('id')
                   ->on('positions')

@@ -5,13 +5,19 @@ namespace Database\Seeders;
 use App\Models\Customer;
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\Company;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
 {
     public function run(): void
     {
-
+        $companyIds = Company::pluck('id');
+         if ($companyIds->isEmpty()) {
+            $this->command->error('Walang nahanap na kumpanya. Paki-run muna ang CompanySeeder.');
+            return;
+        }
+        
         $customers = [
             [
                 'first_name' => 'John',
@@ -50,6 +56,7 @@ class CustomerSeeder extends Seeder
         ];
 
         foreach ($customers as $customer) {
+            $customer['company_id'] = $companyIds->random();
             Customer::create($customer);
         }
     }

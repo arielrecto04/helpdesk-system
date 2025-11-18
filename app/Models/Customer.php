@@ -19,6 +19,7 @@ class Customer extends Model
         'last_name',
         'email',
         'phone_number',
+        'company_id',
     ];
 
     protected function firstName(): Attribute
@@ -46,6 +47,11 @@ class Customer extends Model
     public function tickets(): HasMany
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 
 }

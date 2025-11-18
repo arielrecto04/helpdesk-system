@@ -83,26 +83,6 @@ class User extends Authenticatable
         );
     }
 
-    /**
-     * Get the roles assigned to the user.
-     */
-    public function roles(): BelongsToMany
-    {
-        return $this->belongsToMany(Role::class, 'user_role');
-    }
-
-
-    /**
-     * Get the teams this user is a member of.
-     */
-    public function teams(): BelongsToMany
-    {
-        return $this->belongsToMany(HelpdeskTeam::class, 'user_team', 'user_id', 'team_id');
-    }
-
-    /**
-     * Get the tickets assigned to this user.
-     */
     public function assignedTickets(): HasMany
     {
         return $this->hasMany(Ticket::class, 'assigned_to_user_id');
@@ -112,5 +92,23 @@ class User extends Authenticatable
     {
 
         return $this->hasMany(Ticket::class);
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    public function hasRole($roleName)
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+
+    public function hasPermissionTo($permissionName)
+    {
+
+        return $this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
+            $query->where('name', $permissionName);
+        })->exists();
     }
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\CustomersController;
 use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\PositionsController;
+use App\Http\Controllers\TagsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -82,7 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
 
     Route::get('/employees/{employee}/create-account', [EmployeeController::class, 'createAccount'])->name('employees.createAccount');
-Route::post('/employees/{employee}/store-account', [EmployeeController::class, 'storeAccount'])->name('employees.storeAccount');
+    Route::post('/employees/{employee}/store-account', [EmployeeController::class, 'storeAccount'])->name('employees.storeAccount');
 
     Route::get('/departments', [DepartmentsController::class, 'index'])->name('departments.index');
     Route::get('/departments/create', [DepartmentsController::class, 'create'])->name('departments.create');
@@ -99,6 +100,14 @@ Route::post('/employees/{employee}/store-account', [EmployeeController::class, '
     Route::get('/positions/{position}/edit', [PositionsController::class, 'edit'])->name('positions.edit');
     Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update');
     Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy');
+
+    Route::get('/tags', [TagsController::class, 'index'])->name('tags.index');
+    Route::get('/tags/create', [TagsController::class, 'create'])->name('tags.create');
+    Route::post('/tags', [TagsController::class, 'store'])->name('tags.store');
+    Route::get('/tags/{tag}', [TagsController::class, 'show'])->name('tags.show');
+    Route::get('/tags/{tag}/edit', [TagsController::class, 'edit'])->name('tags.edit');
+    Route::put('/tags/{tag}', [TagsController::class, 'update'])->name('tags.update');
+    Route::delete('/tags/{tag}', [TagsController::class, 'destroy'])->name('tags.destroy');
 
 });
 

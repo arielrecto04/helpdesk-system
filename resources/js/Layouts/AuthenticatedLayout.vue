@@ -8,7 +8,6 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
-// const activeTab = ref('Overview');
 
 const page = usePage();
 const auth = page.props.auth;
@@ -17,7 +16,7 @@ const tabs = [
     { name: 'Overview', type: 'tab', href: route('dashboard') },
     { name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: [{name: 'My Tickets', href: route('tickets.my')}, {name: 'All Tickets', href: route('tickets.index')}] },
     { name: 'Reporting', type: 'dropdown', items: [{name: 'Ticket Analysis', href: '#'}, {name: 'Customer Ratings', href: '#'}] },
-    { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags', href: '#'}, {name: 'Roles', href: '#'}, {name: 'Company', href: '#'}, {name: 'Logs', href: '#'}]}
+    { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags',  href: route('tags.index')}, {name: 'Roles', href: '#'}, {name: 'Company', href: '#'}, {name: 'Logs', href: '#'}]}
 ];
 
 const setActiveTab = (tabName) => {

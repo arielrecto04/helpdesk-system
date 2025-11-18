@@ -1,0 +1,67 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
+
+
+const props = defineProps({
+    tags: Array,
+});
+
+const viewTag = (TagId) => {
+    router.visit(route('tags.show', { tag: TagId }));
+};
+</script>
+
+<template>
+
+    <Head title="Tags" />
+    <AuthenticatedLayout>
+        <template #header>
+            <div class="flex justify-between items-center">
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Tags</h2>
+                <Link :href="route('tags.create')"
+                    class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                Create Tag
+                </Link>
+            </div>
+        </template>
+        <div class="py-12">
+            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            ID</th>
+                                        <th scope="col"
+                                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Tag Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+
+                                    <tr v-if="tags.length === 0">
+                                        <td colspan="2"
+                                            class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No
+                                            tags found.</td>
+                                    </tr>
+                                    <tr v-for="tag in tags" :key="tag.id" @click="viewTag(tag.id)"
+                                        class="hover:bg-gray-100 cursor-pointer">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ tag.id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
+                                            tag.name }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </AuthenticatedLayout>
+</template>
