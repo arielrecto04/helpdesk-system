@@ -19,13 +19,15 @@ class Role extends Model
     /**
      * Get the users with this role.
      */
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'user_roles');
-    }
+    
 
     public function permissions()
     {
         return $this->belongsToMany(Permission::class, 'role_permissions');
+    }
+    
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_roles');
     }
 }

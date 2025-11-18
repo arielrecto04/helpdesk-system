@@ -13,6 +13,7 @@ use App\Http\Controllers\DepartmentsController;
 use App\Http\Controllers\PositionsController;
 use App\Http\Controllers\TagsController;
 use App\Http\Controllers\CompaniesController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -118,13 +119,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/companies/{company}', [CompaniesController::class, 'update'])->name('companies.update');
     Route::delete('/companies/{company}', [CompaniesController::class, 'destroy'])->name('companies.destroy');
 
-    // Route::get('/roles', [CompaniesController::class, 'index'])->name('roles.index');
-    // Route::get('/roles/create', [CompaniesController::class, 'create'])->name('roles.create');
-    // Route::post('/roles', [CompaniesController::class, 'store'])->name('roles.store');
-    // Route::get('/roles/{role}', [CompaniesController::class, 'show'])->name('roles.show');
-    // Route::get('/roles/{role}/edit', [CompaniesController::class, 'edit'])->name('roles.edit');
-    // Route::put('/roles/{role}', [CompaniesController::class, 'update'])->name('roles.update');
-    // Route::delete('/roles/{role}', [CompaniesController::class, 'destroy'])->name('roles.destroy');
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+    Route::get('/roles/create', [RoleController::class, 'create'])->name('roles.create');
+    Route::post('/roles', [RoleController::class, 'store'])->name('roles.store');
+    Route::get('/roles/{role}', [RoleController::class, 'show'])->name('roles.show');
+    Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
+    Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
+    Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 
 });
 

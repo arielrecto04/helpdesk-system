@@ -16,7 +16,7 @@ const tabs = [
     { name: 'Overview', type: 'tab', href: route('dashboard') },
     { name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: [{name: 'My Tickets', href: route('tickets.my')}, {name: 'All Tickets', href: route('tickets.index')}] },
     { name: 'Reporting', type: 'dropdown', items: [{name: 'Ticket Analysis', href: '#'}, {name: 'Customer Ratings', href: '#'}] },
-    { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags',  href: route('tags.index')}, {name: 'Roles', href: '#'}, {name: 'Company',  href: route('companies.index')}, {name: 'Logs', href: '#'}]}
+    { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags',  href: route('tags.index')}, {name: 'Roles', href: route('roles.index')}, {name: 'Company',  href: route('companies.index')}, {name: 'Logs', href: '#'}]}
 ];
 
 const setActiveTab = (tabName) => {
