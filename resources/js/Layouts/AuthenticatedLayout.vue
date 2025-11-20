@@ -12,24 +12,62 @@ const showingNavigationDropdown = ref(false);
 const page = usePage();
 const auth = page.props.auth;
 
-// Build tabs dynamically based on user permissions
 const userPermissions = auth && auth.user && auth.user.permissions ? auth.user.permissions : [];
 
 const ticketsItems = [];
-// Show 'My Tickets' if user can view their own tickets or any tickets
-if (userPermissions.includes('view_my_tickets') || userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
+if (userPermissions.includes('view_my_tickets_menu') || userPermissions.includes('show_my_tickets') || userPermissions.includes('view_my_tickets')) {
     ticketsItems.push({ name: 'My Tickets', href: route('tickets.my') });
 }
-// Show 'All Tickets' only if user can view all tickets or view tickets generally
-if (userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
+if (userPermissions.includes('view_all_tickets_menu') || userPermissions.includes('show_all_tickets') || userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
     ticketsItems.push({ name: 'All Tickets', href: route('tickets.index') });
+}
+
+const reportingItems = [];
+if (userPermissions.includes('view_ticket_analysis_menu') || userPermissions.includes('view_reports') || userPermissions.includes('export_tickets')) {
+    reportingItems.push({ name: 'Ticket Analysis', href: '#' });
+}
+if (userPermissions.includes('view_customer_ratings_menu') || userPermissions.includes('view_reports')) {
+    reportingItems.push({ name: 'Customer Ratings', href: '#' });
+}
+const settingsItems = [];
+if (userPermissions.includes('view_helpdeskteams_menu') || userPermissions.includes('show_helpdeskteams') || userPermissions.includes('view_helpdeskteams')) {
+    settingsItems.push({ name: 'Helpdesk Team', href: route('helpdeskteams.index') });
+}
+if (userPermissions.includes('view_users_menu') || userPermissions.includes('show_users') || userPermissions.includes('view_users')) {
+    settingsItems.push({ name: 'Users', href: route('users.index') });
+}
+if (userPermissions.includes('view_employees_menu') || userPermissions.includes('show_employees') || userPermissions.includes('view_employees')) {
+    settingsItems.push({ name: 'Employee', href: route('employees.index') });
+}
+if (userPermissions.includes('view_customers_menu') || userPermissions.includes('show_customers') || userPermissions.includes('view_customers')) {
+    settingsItems.push({ name: 'Customer', href: route('customers.index') });
+}
+if (userPermissions.includes('view_departments_menu') || userPermissions.includes('show_departments') || userPermissions.includes('view_departments')) {
+    settingsItems.push({ name: 'Department', href: route('departments.index') });
+}
+if (userPermissions.includes('view_tags_menu') || userPermissions.includes('show_tags') || userPermissions.includes('view_tags')) {
+    settingsItems.push({ name: 'Tags', href: route('tags.index') });
+}
+if (userPermissions.includes('view_roles_menu') || userPermissions.includes('show_roles') || userPermissions.includes('view_roles')) {
+    settingsItems.push({ name: 'Roles', href: route('roles.index') });
+}
+if (userPermissions.includes('view_companies_menu') || userPermissions.includes('show_companies') || userPermissions.includes('view_companies')) {
+    settingsItems.push({ name: 'Company', href: route('companies.index') });
+}
+if (userPermissions.includes('view_canned_responses_menu') || userPermissions.includes('show_canned_responses') || userPermissions.includes('view_canned_responses')) {
+    settingsItems.unshift({ name: 'Canned Responses', href: '#' });
+}
+if (userPermissions.includes('view_logs_menu') || userPermissions.includes('show_logs') || userPermissions.includes('view_logs')) {
+    settingsItems.push({ name: 'Logs', href: '#' });
 }
 
 const tabs = [
     { name: 'Overview', type: 'tab', href: route('dashboard') },
-    { name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: ticketsItems },
-    { name: 'Reporting', type: 'dropdown', items: [{name: 'Ticket Analysis', href: '#'}, {name: 'Customer Ratings', href: '#'}] },
-    { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags',  href: route('tags.index')}, {name: 'Roles', href: route('roles.index')}, {name: 'Company',  href: route('companies.index')}, {name: 'Logs', href: '#'}]}
+    ...(ticketsItems.length ? [{ name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: ticketsItems }] : []),
+
+    ...(reportingItems.length ? [{ name: 'Reporting', type: 'dropdown', items: reportingItems }] : []),
+
+    ...(settingsItems.length ? [{ name: 'Settings', type: 'dropdown', items: settingsItems }] : []),
 ];
 
 const setActiveTab = (tabName) => {
@@ -87,7 +125,7 @@ const setActiveTab = (tabName) => {
                                         
                                         :class="[
                                             'px-3 py-2 text-sm font-medium rounded-md',
-                                            tab.active  // <-- Pinalitan din ito
+                                            tab.active 
                                                 ? 'bg-blue-100 text-blue-700'
                                                 : 'text-gray-500 hover:text-gray-700'
                                         ]"

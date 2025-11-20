@@ -168,7 +168,10 @@ class DashboardController extends Controller
             $hasTeamAccess = $isAdmin || $user->teams()->where('helpdesk_teams.id', $team['id'])->exists();
             $hasPermissionAccess = $user->hasPermissionTo('view_team_tickets')
                 || $user->hasPermissionTo('view_all_tickets')
-                || $user->hasPermissionTo('view_tickets');
+                || $user->hasPermissionTo('view_tickets')
+                || $user->hasPermissionTo('can_view_other_teams_tickets')
+                || $user->hasPermissionTo('can_view_other_locations_tickets')
+                || $user->hasPermissionTo('can_view_other_users_tickets');
 
             $team['canView'] = $hasTeamAccess || $hasPermissionAccess;
             return $team;

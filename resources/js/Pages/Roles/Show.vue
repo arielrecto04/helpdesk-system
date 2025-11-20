@@ -132,9 +132,10 @@ const categorizedPermissions = computed(() => {
     };
 
     props.role.permissions.forEach(permission => {
-        const name = permission.name;
-        
-        if (name.includes('dashboard') || name.includes('profile') || name.includes('settings')) {
+        const raw = (permission.name || '').toLowerCase();
+        const name = raw.replace(/^(view_|show_|create_|edit_|delete_|can_)/, '');
+
+        if (name.includes('dashboard') || name.includes('profile') || raw.includes('settings')) {
             categories['General'].push(permission);
         } else if (name.includes('ticket')) {
             categories['Tickets'].push(permission);
@@ -146,13 +147,13 @@ const categorizedPermissions = computed(() => {
             categories['Employees'].push(permission);
         } else if (name.includes('department') || name.includes('position')) {
             categories['Departments & Positions'].push(permission);
-        } else if (name.includes('helpdeskteam')) {
+        } else if (name.includes('helpdesk')) {
             categories['Helpdesk Teams'].push(permission);
         } else if (name.includes('tag')) {
             categories['Tags'].push(permission);
-        } else if (name.includes('compan')) {
+        } else if (name.includes('compan') || name.includes('company')) {
             categories['Companies'].push(permission);
-        } else if (name.includes('report')) {
+        } else if (name.includes('report') || raw.includes('ticket_analysis') || raw.includes('customer_ratings')) {
             categories['Reports'].push(permission);
         }
     });

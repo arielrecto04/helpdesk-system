@@ -23,11 +23,28 @@ class TicketController extends Controller
      */
     public function index(): Response
     {
-        $tickets = Ticket::query()
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        $query = Ticket::query()
             ->with(['customer', 'team', 'assignedTo'])
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
+            ->latest();
+
+        $hasBroadView = $user->hasRole('admin')
+            || $user->hasPermissionTo('view_all_tickets')
+            || $user->hasPermissionTo('can_view_other_teams_tickets')
+            || $user->hasPermissionTo('can_view_other_locations_tickets')
+            || $user->hasPermissionTo('can_view_other_users_tickets');
+
+        if (!$hasBroadView) {
+            $teamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
+            $query->where(function ($q) use ($teamIds, $user) {
+                $q->whereIn('team_id', $teamIds)
+                    ->orWhere('assigned_to_user_id', $user->id);
+            });
+        }
+
+        $tickets = $query->paginate(15)->withQueryString();
 
         $tickets->getCollection()->transform(function ($ticket) {
             if ($ticket->assignedTo) {
@@ -108,7 +125,13 @@ class TicketController extends Controller
             || $hasTeamAccess
             || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
             || $user->hasPermissionTo('view_all_tickets')
-            || $user->hasPermissionTo('view_tickets');
+            || $user->hasPermissionTo('view_tickets')
+            // Allow users with the 'show_my_tickets' permission to view tickets assigned to them
+            || ($user->hasPermissionTo('show_my_tickets') && $ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
+            // New permissions to allow viewing tickets beyond own team/user
+            || $user->hasPermissionTo('can_view_other_teams_tickets')
+            || $user->hasPermissionTo('can_view_other_locations_tickets')
+            || $user->hasPermissionTo('can_view_other_users_tickets');
 
         if (!$canView) {
             abort(403, 'Unauthorized. You do not have permission to view this ticket.');
@@ -142,7 +165,9 @@ class TicketController extends Controller
             || $hasTeamAccess
             || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
             || $user->hasPermissionTo('edit_tickets')
-            || $user->hasPermissionTo('view_all_tickets');
+            || $user->hasPermissionTo('view_all_tickets')
+            // Allow users with 'edit_my_tickets' to edit tickets assigned to them
+            || ($user->hasPermissionTo('edit_my_tickets') && $ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id);
 
         if (!$canEdit) {
             abort(403, 'Unauthorized. You can only edit tickets you are allowed to.');
@@ -216,7 +241,9 @@ class TicketController extends Controller
             || $hasTeamAccess
             || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
             || $user->hasPermissionTo('delete_tickets')
-            || $user->hasPermissionTo('view_all_tickets');
+            || $user->hasPermissionTo('view_all_tickets')
+            // Allow users with 'delete_my_tickets' to delete tickets assigned to them
+            || ($user->hasPermissionTo('delete_my_tickets') && $ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id);
 
         if (!$canDelete) {
             abort(403, 'Unauthorized. You can only delete tickets you are allowed to.');
