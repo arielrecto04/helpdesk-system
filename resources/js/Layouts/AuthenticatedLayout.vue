@@ -12,9 +12,22 @@ const showingNavigationDropdown = ref(false);
 const page = usePage();
 const auth = page.props.auth;
 
+// Build tabs dynamically based on user permissions
+const userPermissions = auth && auth.user && auth.user.permissions ? auth.user.permissions : [];
+
+const ticketsItems = [];
+// Show 'My Tickets' if user can view their own tickets or any tickets
+if (userPermissions.includes('view_my_tickets') || userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
+    ticketsItems.push({ name: 'My Tickets', href: route('tickets.my') });
+}
+// Show 'All Tickets' only if user can view all tickets or view tickets generally
+if (userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
+    ticketsItems.push({ name: 'All Tickets', href: route('tickets.index') });
+}
+
 const tabs = [
     { name: 'Overview', type: 'tab', href: route('dashboard') },
-    { name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: [{name: 'My Tickets', href: route('tickets.my')}, {name: 'All Tickets', href: route('tickets.index')}] },
+    { name: 'Tickets', type: 'dropdown', active: route().current('tickets.*'), items: ticketsItems },
     { name: 'Reporting', type: 'dropdown', items: [{name: 'Ticket Analysis', href: '#'}, {name: 'Customer Ratings', href: '#'}] },
     { name: 'Settings', type: 'dropdown', items: [{name: 'Helpdesk Team', href: route('helpdeskteams.index')}, {name: 'Canned Responses', href: '#'}, {name: 'Users', href: route('users.index')}, {name: 'Employee', href: route('employees.index')}, {name: 'Customer', href: route('customers.index')}, {name: 'Department', href: route('departments.index')}, {name: 'Tags',  href: route('tags.index')}, {name: 'Roles', href: route('roles.index')}, {name: 'Company',  href: route('companies.index')}, {name: 'Logs', href: '#'}]}
 ];

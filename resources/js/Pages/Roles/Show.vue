@@ -52,10 +52,15 @@
 
                             <div>
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">Permissions ({{ role.permissions.length }})</h3>
-                                <div v-if="role.permissions.length > 0" class="space-y-2">
-                                    <span v-for="permission in role.permissions" :key="permission.id" class="inline-block bg-indigo-100 text-indigo-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full">
-                                        {{ permission.name }}
-                                    </span>
+                                <div v-if="role.permissions.length > 0" class="space-y-4">
+                                    <div v-for="[category, permissions] in categorizedPermissions" :key="category" class="border border-gray-200 rounded-lg p-3">
+                                        <h4 class="font-semibold text-sm text-gray-700 mb-2">{{ category }}</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span v-for="permission in permissions" :key="permission.id" class="inline-block bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                                {{ permission.name }}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div v-else>
                                     <p class="text-sm text-gray-500">No permissions assigned to this role.</p>
@@ -93,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -110,6 +115,51 @@ const props = defineProps({
 
 const confirmingRoleDeletion = ref(false);
 const form = useForm({});
+
+// Categorize permissions
+const categorizedPermissions = computed(() => {
+    const categories = {
+        'General': [],
+        'Tickets': [],
+        'Users & Roles': [],
+        'Customers': [],
+        'Employees': [],
+        'Departments & Positions': [],
+        'Helpdesk Teams': [],
+        'Tags': [],
+        'Companies': [],
+        'Reports': [],
+    };
+
+    props.role.permissions.forEach(permission => {
+        const name = permission.name;
+        
+        if (name.includes('dashboard') || name.includes('profile') || name.includes('settings')) {
+            categories['General'].push(permission);
+        } else if (name.includes('ticket')) {
+            categories['Tickets'].push(permission);
+        } else if (name.includes('user') || name.includes('role') || name.includes('permission')) {
+            categories['Users & Roles'].push(permission);
+        } else if (name.includes('customer')) {
+            categories['Customers'].push(permission);
+        } else if (name.includes('employee')) {
+            categories['Employees'].push(permission);
+        } else if (name.includes('department') || name.includes('position')) {
+            categories['Departments & Positions'].push(permission);
+        } else if (name.includes('helpdeskteam')) {
+            categories['Helpdesk Teams'].push(permission);
+        } else if (name.includes('tag')) {
+            categories['Tags'].push(permission);
+        } else if (name.includes('compan')) {
+            categories['Companies'].push(permission);
+        } else if (name.includes('report')) {
+            categories['Reports'].push(permission);
+        }
+    });
+
+    // Remove empty categories
+    return Object.entries(categories).filter(([_, perms]) => perms.length > 0);
+});
 
 const confirmRoleDeletion = () => {
     confirmingRoleDeletion.value = true;

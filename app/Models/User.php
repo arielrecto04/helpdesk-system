@@ -12,6 +12,7 @@ use App\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\HelpdeskTeam;
 
 class User extends Authenticatable
 {
@@ -99,6 +100,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Role::class, 'user_roles');
     }
 
+    /**
+     * The helpdesk teams this user belongs to.
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(HelpdeskTeam::class, 'user_team', 'user_id', 'helpdesk_team_id');
+    }
+
     public function hasRole($roleName)
     {
         return $this->roles()->where('name', $roleName)->exists();
@@ -106,7 +115,11 @@ class User extends Authenticatable
 
     public function hasPermissionTo($permissionName)
     {
-
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->flatMap(function ($role) {
+                return $role->permissions;
+            })->contains('name', $permissionName);
+        }
         return $this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
             $query->where('name', $permissionName);
         })->exists();

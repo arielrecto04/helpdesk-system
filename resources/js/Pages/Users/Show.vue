@@ -51,6 +51,15 @@
                                         <dt class="text-sm font-medium text-gray-500">Email</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ user.email }}</dd>
                                     </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Roles</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            <span v-for="(role, index) in user.roles" :key="role.id">
+                                                {{ role.name }}
+                                                <span v-if="index < user.roles.length - 1">, </span>
+                                            </span>
+                                        </dd>
+                                    </div>
 
                                 </dl>
                             </div>

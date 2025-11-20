@@ -57,7 +57,10 @@ class CustomerSeeder extends Seeder
 
         foreach ($customers as $customer) {
             $customer['company_id'] = $companyIds->random();
-            Customer::create($customer);
+            Customer::updateOrCreate(
+                ['email' => $customer['email']],
+                $customer
+            );
         }
     }
 }

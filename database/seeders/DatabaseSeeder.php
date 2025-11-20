@@ -18,11 +18,10 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             PositionSeeder::class,
             HelpdeskTeamSeeder::class,
-            RoleSeeder::class,
             CompanySeeder::class,
+            RolePermissionSeeder::class, // Run this before UserSeeder so roles exist
             UserSeeder::class, 
             EmployeeSeeder::class,
-            RolePermissionSeeder::class,
             CustomerSeeder::class,
             TagSeeder::class,
             TicketSeeder::class,

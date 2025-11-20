@@ -47,7 +47,7 @@ class PositionSeeder extends Seeder
 
             if ($department) {
                 foreach ($positions as $positionTitle) {
-                    Position::create([
+                    Position::firstOrCreate([
                         'department_id' => $department->id,
                         'position_title' => $positionTitle,
                     ]);

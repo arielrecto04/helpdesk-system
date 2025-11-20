@@ -9,7 +9,7 @@ trait HasRoles
      */
     public function roles()
     {
-        return $this->belongsToMany(\App\Models\Role::class, 'user_role');
+        return $this->belongsToMany(\App\Models\Role::class, 'user_roles');
     }
 
     /**

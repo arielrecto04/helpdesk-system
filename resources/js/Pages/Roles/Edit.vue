@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -15,6 +16,51 @@ const form = useForm({
     name: props.role.name,
     description: props.role.description,
     permissions: props.role.permissions.map(p => p.id),
+});
+
+// Categorize permissions
+const categorizedPermissions = computed(() => {
+    const categories = {
+        'General': [],
+        'Tickets': [],
+        'Users & Roles': [],
+        'Customers': [],
+        'Employees': [],
+        'Departments & Positions': [],
+        'Helpdesk Teams': [],
+        'Tags': [],
+        'Companies': [],
+        'Reports': [],
+    };
+
+    props.all_permissions.forEach(permission => {
+        const name = permission.name;
+        
+        if (name.includes('dashboard') || name.includes('profile') || name.includes('settings')) {
+            categories['General'].push(permission);
+        } else if (name.includes('ticket')) {
+            categories['Tickets'].push(permission);
+        } else if (name.includes('user') || name.includes('role') || name.includes('permission')) {
+            categories['Users & Roles'].push(permission);
+        } else if (name.includes('customer')) {
+            categories['Customers'].push(permission);
+        } else if (name.includes('employee')) {
+            categories['Employees'].push(permission);
+        } else if (name.includes('department') || name.includes('position')) {
+            categories['Departments & Positions'].push(permission);
+        } else if (name.includes('helpdeskteam')) {
+            categories['Helpdesk Teams'].push(permission);
+        } else if (name.includes('tag')) {
+            categories['Tags'].push(permission);
+        } else if (name.includes('compan')) {
+            categories['Companies'].push(permission);
+        } else if (name.includes('report')) {
+            categories['Reports'].push(permission);
+        }
+    });
+
+    // Remove empty categories
+    return Object.entries(categories).filter(([_, perms]) => perms.length > 0);
 });
 
 const submit = () => {
@@ -62,17 +108,25 @@ const submit = () => {
                             </div>
 
                             <div class="mt-6">
-                                <h3 class="font-semibold text-lg text-gray-800">Permissions</h3>
-                                <div class="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div v-for="permission in all_permissions" :key="permission.id" class="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            :id="'perm_' + permission.id"
-                                            :value="permission.id"
-                                            v-model="form.permissions"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                        />
-                                        <label :for="'perm_' + permission.id" class="ms-2 text-sm text-gray-600">{{ permission.name }} ({{ permission.description }})</label>
+                                <h3 class="font-semibold text-lg text-gray-800 mb-4">Permissions</h3>
+                                <div class="space-y-6">
+                                    <div v-for="[category, permissions] in categorizedPermissions" :key="category" class="border border-gray-200 rounded-lg p-4">
+                                        <h4 class="font-semibold text-md text-gray-700 mb-3">{{ category }}</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                                            <div v-for="permission in permissions" :key="permission.id" class="flex items-start">
+                                                <input
+                                                    type="checkbox"
+                                                    :id="'perm_' + permission.id"
+                                                    :value="permission.id"
+                                                    v-model="form.permissions"
+                                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 mt-1"
+                                                />
+                                                <label :for="'perm_' + permission.id" class="ms-2 text-sm text-gray-600">
+                                                    <span class="font-medium">{{ permission.name }}</span>
+                                                    <span class="block text-xs text-gray-500">{{ permission.description }}</span>
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <InputError class="mt-2" :message="form.errors.permissions" />

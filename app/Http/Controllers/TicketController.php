@@ -99,8 +99,19 @@ class TicketController extends Controller
             ->where('helpdesk_teams.id', $ticket->team_id)
             ->exists();
 
-        if (!$isAdmin && !$hasTeamAccess) {
-            abort(403, 'Unauthorized. You can only view tickets from your teams.');
+        // Authorization rules:
+        // - Admins can view any ticket
+        // - Users who belong to the ticket's team can view
+        // - The user assigned to the ticket can view it
+        // - Users with explicit permissions can view all tickets
+        $canView = $isAdmin
+            || $hasTeamAccess
+            || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
+            || $user->hasPermissionTo('view_all_tickets')
+            || $user->hasPermissionTo('view_tickets');
+
+        if (!$canView) {
+            abort(403, 'Unauthorized. You do not have permission to view this ticket.');
         }
 
         // Load relationships and add assigned_user_name attribute
@@ -126,8 +137,15 @@ class TicketController extends Controller
         $isAdmin = $user->hasRole('admin');
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
-        if (!$isAdmin && !$hasTeamAccess) {
-            abort(403, 'Unauthorized. You can only edit tickets from your teams.');
+        // Allow editing if admin, team member, assigned user, or has edit permissions
+        $canEdit = $isAdmin
+            || $hasTeamAccess
+            || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
+            || $user->hasPermissionTo('edit_tickets')
+            || $user->hasPermissionTo('view_all_tickets');
+
+        if (!$canEdit) {
+            abort(403, 'Unauthorized. You can only edit tickets you are allowed to.');
         }
 
         return Inertia::render('Tickets/Edit', [
@@ -154,8 +172,14 @@ class TicketController extends Controller
         $isAdmin = $user->hasRole('admin');
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
-        if (!$isAdmin && !$hasTeamAccess) {
-            abort(403, 'Unauthorized. You can only update tickets from your teams.');
+        $canEdit = $isAdmin
+            || $hasTeamAccess
+            || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
+            || $user->hasPermissionTo('edit_tickets')
+            || $user->hasPermissionTo('view_all_tickets');
+
+        if (!$canEdit) {
+            abort(403, 'Unauthorized. You can only update tickets you are allowed to.');
         }
 
         $validated = $request->validate([
@@ -187,8 +211,15 @@ class TicketController extends Controller
         $isAdmin = $user->hasRole('admin');
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
-        if (!$isAdmin && !$hasTeamAccess) {
-            abort(403, 'Unauthorized. You can only delete tickets from your teams.');
+        // Allow delete if admin, team member, assigned user, or has delete permissions
+        $canDelete = $isAdmin
+            || $hasTeamAccess
+            || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
+            || $user->hasPermissionTo('delete_tickets')
+            || $user->hasPermissionTo('view_all_tickets');
+
+        if (!$canDelete) {
+            abort(403, 'Unauthorized. You can only delete tickets you are allowed to.');
         }
 
         $teamId = $ticket->team_id;

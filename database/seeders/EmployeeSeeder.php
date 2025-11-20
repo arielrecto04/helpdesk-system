@@ -64,9 +64,24 @@ class EmployeeSeeder extends Seeder
             $department = $departments->random();
             $position = $department->positions->random();
 
-            Employee::updateOrCreate(
-                ['email' => $data['email']],
-                [
+            $employee = Employee::where('email', $data['email'])->first();
+            
+            if ($employee) {
+                // Update existing employee without changing employee_code
+                $employee->update([
+                    'first_name' => $data['first_name'],
+                    'middle_name' => $data['middle_name'] ?? null,
+                    'last_name' => $data['last_name'],
+                    'phone_number' => $data['phone_number'],
+                    'department_id' => $department->id,
+                    'position_id' => $position->id,
+                    'company_id' => $companyIds->random()
+                ]);
+            } else {
+                // Create new employee with unique code
+                $maxId = Employee::max('id') ?? 0;
+                Employee::create([
+                    'email' => $data['email'],
                     'first_name' => $data['first_name'],
                     'middle_name' => $data['middle_name'] ?? null,
                     'last_name' => $data['last_name'],
@@ -74,10 +89,10 @@ class EmployeeSeeder extends Seeder
                     'department_id' => $department->id,
                     'position_id' => $position->id,
                     'hire_date' => now()->subDays(rand(30, 1000)),
-                    'employee_code' => 'EMP-' . str_pad(Employee::max('id') + 1, 4, '0', STR_PAD_LEFT),
+                    'employee_code' => 'EMP-' . str_pad($maxId + 1, 4, '0', STR_PAD_LEFT),
                     'company_id' => $companyIds->random()
-                ]
-            );
+                ]);
+            }
         }
     }
 }

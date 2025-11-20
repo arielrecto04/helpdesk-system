@@ -8,6 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
     user: Object,
+    roles: Array,
 });
 
 const form = useForm({
@@ -18,6 +19,7 @@ const form = useForm({
     email: props.user.email,
     password: '',
     password_confirmation: '',
+    roles: props.user.roles,
 });
 
 const submit = () => {
@@ -100,6 +102,22 @@ const fullName = [props.user.first_name, props.user.middle_name, props.user.last
                                     autocomplete="username"
                                 />
                                 <InputError class="mt-2" :message="form.errors.email" />
+                            </div>
+
+                            <!-- Roles -->
+                            <div class="mt-4">
+                                <InputLabel for="roles" value="Roles" />
+                                <select
+                                    id="roles"
+                                    multiple
+                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    v-model="form.roles"
+                                >
+                                    <option v-for="role in roles" :key="role.id" :value="role.id">
+                                        {{ role.name }}
+                                    </option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.roles" />
                             </div>
 
                             <!-- Password -->

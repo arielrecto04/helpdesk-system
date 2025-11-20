@@ -18,7 +18,7 @@ class HelpdeskTeamSeeder extends Seeder
         ];
 
         foreach ($teams as $team) {
-            HelpdeskTeam::create($team);
+            HelpdeskTeam::firstOrCreate($team);
         }
     }
 }

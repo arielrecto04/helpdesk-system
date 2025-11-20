@@ -35,12 +35,16 @@ class TeamTicketsController extends Controller
             ->where('team_id', $team->id);
 
         if (!$isAdmin) {
-            // Verify user belongs to the team
+            // Verify user belongs to the team OR has appropriate permissions
             $hasTeamAccess = $user->teams()
                 ->where('helpdesk_teams.id', $teamId)
                 ->exists();
 
-            if (!$hasTeamAccess) {
+            $hasPermissionAccess = $user->hasPermissionTo('view_team_tickets')
+                || $user->hasPermissionTo('view_all_tickets')
+                || $user->hasPermissionTo('view_tickets');
+
+            if (!$hasTeamAccess && !$hasPermissionAccess) {
                 abort(403, 'Unauthorized. You can only view tickets from your teams.');
             }
         }

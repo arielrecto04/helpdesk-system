@@ -17,7 +17,7 @@ class TicketSeeder extends Seeder
         $customers = Customer::all();
         $teams = HelpdeskTeam::all();
         $agents = User::whereHas('roles', function($query) {
-            $query->where('name', 'Support Agent');
+            $query->where('name', 'agent');
         })->get();
 
 

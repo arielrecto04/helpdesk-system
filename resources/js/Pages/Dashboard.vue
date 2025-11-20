@@ -175,13 +175,20 @@ const getStageClass = (stage) => {
                             </div>
                         </div>
 
-                        <!-- View Tickets Button -->
-                        <Link 
-                            :href="route('team.tickets', team.id)" 
-                            class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors text-center block"
-                        >
-                            View Tickets
-                        </Link>
+                        <!-- View Tickets Button (hidden if user lacks access) -->
+                        <div v-if="team.canView">
+                            <Link 
+                                :href="route('team.tickets', team.id)" 
+                                class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors text-center block"
+                            >
+                                View Tickets
+                            </Link>
+                        </div>
+                        <div v-else>
+                            <button disabled class="w-full bg-gray-200 text-gray-500 rounded-md py-2 text-center block">
+                                View Tickets
+                            </button>
+                        </div>
                     </div>
                 </div>
 

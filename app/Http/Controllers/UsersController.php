@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
@@ -19,10 +20,11 @@ class UsersController extends Controller
      */
     public function index(): Response
     {
-        $users = User::latest()->paginate(10)->through(fn ($user) => [
+        $users = User::with('roles')->latest()->paginate(10)->through(fn ($user) => [
             'id' => $user->id,
             'name' => $user->first_name . ' ' . $user->last_name,
             'email' => $user->email,
+            'roles' => $user->roles->map(fn ($role) => ['id' => $role->id, 'name' => $role->name]),
             'created_at' => $user->created_at->toDateTimeString(),
             'updated_at' => $user->updated_at->toDateTimeString(),
         ]);
@@ -70,6 +72,7 @@ class UsersController extends Controller
      */
     public function show(User $user): Response
     {
+        $user->load('roles');
         return Inertia::render('Users/Show', [
             'user' => [
                 'id' => $user->id,
@@ -78,6 +81,7 @@ class UsersController extends Controller
                 'middle_name' => $user->middle_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
+                'roles' => $user->roles->map(fn ($role) => ['id' => $role->id, 'name' => $role->name]),
                 'created_at' => $user->created_at->toDateTimeString(),
                 'updated_at' => $user->updated_at->toDateTimeString(),
             ]
@@ -89,6 +93,7 @@ class UsersController extends Controller
      */
     public function edit(User $user): Response
     {
+        $user->load('roles');
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id,
@@ -96,7 +101,9 @@ class UsersController extends Controller
                 'middle_name' => $user->middle_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
-            ]
+                'roles' => $user->roles->pluck('id'),
+            ],
+            'roles' => Role::all(['id', 'name']),
         ]);
     }
 
@@ -112,15 +119,20 @@ class UsersController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+            'roles' => 'sometimes|array',
         ]);
 
-        $user->fill(Arr::except($validated, ['password']));
+        $user->fill(Arr::except($validated, ['password', 'roles']));
 
         if (isset($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
+
+        if (isset($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
+        }
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

@@ -35,6 +35,7 @@ const viewUser = (userId) => {
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
                                     </tr>
@@ -42,7 +43,7 @@ const viewUser = (userId) => {
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <!-- Check if users.data array is empty -->
                                     <tr v-if="users.data.length === 0">
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No users found.</td>
+                                        <td colspan="6" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No users found.</td>
                                     </tr>
                                     <!-- Loop over users.data -->
                                     <tr v-for="user in users.data" :key="user.id" @click="viewUser(user.id)" class="hover:bg-gray-100 cursor-pointer">
@@ -50,6 +51,12 @@ const viewUser = (userId) => {
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ user.id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ user.name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span v-for="(role, index) in user.roles" :key="role.id">
+                                                {{ role.name }}
+                                                <span v-if="index < user.roles.length - 1">, </span>
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.created_at }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.updated_at }}</td>
                                     </tr>

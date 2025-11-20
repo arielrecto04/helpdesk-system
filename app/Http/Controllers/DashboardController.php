@@ -124,7 +124,7 @@ class DashboardController extends Controller
         ];
 
         // Team statistics
-        $teams = HelpdeskTeam::all()->map(function ($team) {
+        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $isAdmin) {
             $totalTickets = Ticket::where('team_id', $team->id)->count();
             $resolvedTickets = Ticket::where('team_id', $team->id)
                 ->where('stage', 'Resolved')
@@ -163,6 +163,17 @@ class DashboardController extends Controller
             ];
         });
 
+        // Compute per-team access flags for the current user
+        $teams = $teams->map(function ($team) use ($user, $isAdmin) {
+            $hasTeamAccess = $isAdmin || $user->teams()->where('helpdesk_teams.id', $team['id'])->exists();
+            $hasPermissionAccess = $user->hasPermissionTo('view_team_tickets')
+                || $user->hasPermissionTo('view_all_tickets')
+                || $user->hasPermissionTo('view_tickets');
+
+            $team['canView'] = $hasTeamAccess || $hasPermissionAccess;
+            return $team;
+        });
+
         // Recent activities
         $recentActivities = Ticket::with(['customer', 'assignedTo', 'team'])
             ->latest()
@@ -181,10 +192,17 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Prepare auth data with roles
+        // Prepare auth data with roles and permissions
+        $permissions = $user->roles()->with('permissions')->get()
+            ->flatMap(function ($role) { return $role->permissions->pluck('name'); })
+            ->unique()
+            ->values()
+            ->toArray();
+
         $authData = [
             'user' => array_merge($user->toArray(), [
-                'roles' => $user->roles()->pluck('name')->toArray()
+                'roles' => $user->roles()->pluck('name')->toArray(),
+                'permissions' => $permissions,
             ])
         ];
 
