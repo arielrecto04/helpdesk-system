@@ -15,11 +15,11 @@
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
                             <div class="flex justify-between items-center">
                                 <span>Department: {{ department.department_name }}</span>
-                                <div class="flex space-x-2">
-                                    <Link :href="route('departments.edit', department.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_departments') || userPermissions.includes('delete_departments'))">
+                                    <Link v-if="userPermissions.includes('edit_departments')" :href="route('departments.edit', department.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton @click="confirmDepartmentDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_departments')" @click="confirmDepartmentDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -38,13 +38,13 @@
                     </div>
                 </div>
 
-                <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div v-if="userPermissions && (userPermissions.includes('view_positions_menu') || userPermissions.includes('show_positions'))" class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-medium text-gray-900">
                                 Positions in this Department
                             </h3>
-                            <Link :href="route('positions.create', { department: department.id })" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <Link v-if="userPermissions && userPermissions.includes('create_positions')" :href="route('positions.create', { department: department.id })" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                 Create New Position
                             </Link>
                         </div>
@@ -69,10 +69,10 @@
                                         </h1>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-right space-x-2">
-                                        <Link :href="route('positions.edit', { position: position.id })" class="text-indigo-600 hover:text-indigo-900">
+                                        <Link v-if="userPermissions && userPermissions.includes('edit_positions')" :href="route('positions.edit', { position: position.id })" class="text-indigo-600 hover:text-indigo-900">
                                             Edit
                                         </Link>
-                                        <button @click="confirmPositionDeletion(position)" class="text-red-600 hover:text-red-900">
+                                        <button v-if="userPermissions && userPermissions.includes('delete_positions')" @click="confirmPositionDeletion(position)" class="text-red-600 hover:text-red-900">
                                             Delete
                                         </button>
                                     </td>
@@ -198,5 +198,8 @@ const closePositionModal = () => {
     confirmingPositionDeletion.value = false;
     positionToDelete.value = null;
 };
+
+const page = usePage();
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 </script>

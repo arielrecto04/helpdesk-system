@@ -1,8 +1,9 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\HelpdeskTeamsController;
-use App\Http\Controllers\MyTicketController;
+use App\Http\Controllers\MyTicketsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TeamTicketsController;
@@ -30,18 +31,23 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
+    Route::post('/customer/tickets', [CustomerDashboardController::class, 'storeTicket'])->name('customer.tickets.store');
+    Route::get('/customer/tickets/{ticket}', [CustomerDashboardController::class, 'showTicket'])->name('customer.tickets.show');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:view_dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('permission:view_profile');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('permission:view_profile');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy')->middleware('permission:view_profile');
 
     // Custom Ticket Routes
-    Route::get('/my-tickets', [MyTicketController::class, 'index'])->name('tickets.my')->middleware('permission:show_my_tickets');
+    Route::get('/my-tickets', [MyTicketsController::class, 'index'])->name('tickets.my')->middleware('permission:show_my_tickets');
     Route::get('/my-tickets/create', [TicketController::class, 'create'])->name('tickets.create')->middleware('permission:create_my_tickets');
-    Route::get('/team/{teamId}/tickets', [TeamTicketsController::class, 'index'])->name('team.tickets')->middleware('permission:show_team_tickets');
+    // Team tickets route: controller enforces access (admins allowed), so remove permission middleware
+    Route::get('/team/{teamId}/tickets', [TeamTicketsController::class, 'index'])->name('team.tickets');
 
     Route::get('/all-tickets', [TicketController::class, 'index'])->name('tickets.all')->middleware('permission:show_all_tickets');
-    // Standard Ticket Resource Routes
     Route::resource('tickets', TicketController::class);
 
     Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index')->middleware('permission:show_all_tickets');

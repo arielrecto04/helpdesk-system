@@ -6,10 +6,12 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 // --- INAYOS: Idinagdag ang 'computed' ---
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
-    prefill: Object // Ito ay null kung galing sa generic 'create user'
+    prefill: Object, // Ito ay null kung galing sa generic 'create user'
+    roles: { type: Array, default: () => [] }, // optional roles list when creating account for employee
+    is_customer: { type: Boolean, default: false },
 });
 
 const form = useForm({
@@ -19,27 +21,37 @@ const form = useForm({
     email: props.prefill?.email ?? '',
     password: '',
     password_confirmation: '',
-    // TANDAAN: Hindi na natin kailangan ang 'employee_id' sa form,
-    // dahil ipapasa natin ito sa route parameter.
+    roles: [],
+    customer_id: props.prefill?.customer_id ?? null,
 });
 
-// --- INAYOS: Nag-check kung ito ay para sa employee ---
-const isEmployeeAccount = computed(() => !!props.prefill);
+// --- INAYOS: Nag-check kung ito ay para sa employee o customer ---
+const isEmployeeAccount = computed(() => !!props.prefill && !props.is_customer);
+const isCustomerAccount = computed(() => !!props.is_customer);
+
+// expose convenient bindings for template usage
+const prefill = props.prefill ?? null;
+const roles = props.roles ?? [];
+const is_customer = props.is_customer ?? false;
+
+// selectedRole keeps the dropdown single-select state; keep form.roles as array for backend
+const selectedRole = ref(form.roles && form.roles.length ? form.roles[0] : null);
+watch(selectedRole, (val) => {
+    form.roles = val ? [val] : [];
+});
 
 // --- INAYOS: Inayos ang buong submit logic ---
 const submit = () => {
     if (isEmployeeAccount.value) {
         // 1. Kung galing sa Employee page, sa 'employees.storeAccount' i-submit
         form.post(route('employees.storeAccount', { employee: props.prefill.employee_id }), {
-            // I-reset lang ang password fields kapag may error
             onError: () => form.reset('password', 'password_confirmation'),
-            // Hindi na kailangan ng onSuccess dahil magre-redirect ito
         });
     } else {
-        // 2. Kung generic 'Create User', sa 'users.store' i-submit
+        // 2. Generic create (could be customer or manual user creation)
         form.post(route('users.store'), {
-            onSuccess: () => form.reset(), // I-reset lahat kapag successful
-            onError: () => form.reset('password', 'password_confirmation'), // I-reset lang ang password kapag may error
+            onSuccess: () => form.reset(),
+            onError: () => form.reset('password', 'password_confirmation'),
         });
     }
 };
@@ -47,10 +59,11 @@ const submit = () => {
 // --- INAYOS: Dynamic na 'Cancel' link ---
 const cancelRoute = computed(() => {
     if (isEmployeeAccount.value) {
-        // Bumalik sa employee show page
         return route('employees.show', { employee: props.prefill.employee_id });
     }
-    // Bumalik sa user index page
+    if (isCustomerAccount.value) {
+        return route('customers.show', { customer: props.prefill.customer_id });
+    }
     return route('users.index');
 });
 </script>
@@ -151,12 +164,28 @@ const cancelRoute = computed(() => {
                                 <InputError class="mt-2" :message="form.errors.password_confirmation" />
                             </div>
 
+                            <!-- Roles selection for employee account creation -->
+                            <div v-if="roles && roles.length > 0" class="mt-4">
+                                <InputLabel value="Assign Role" />
+                                <div class="mt-2">
+                                    <select v-model.number="selectedRole" required class="block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                        <option :value="null">-- Select role --</option>
+                                        <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                                    </select>
+                                </div>
+                                <InputError class="mt-2" :message="form.errors.roles" />
+                                <p v-if="roles && roles.length > 0 && !selectedRole" class="text-sm text-red-600 mt-2">Please select a role.</p>
+                            </div>
+
+                            <!-- Hidden customer id for customer-account flow -->
+                            <input v-if="form.customer_id" type="hidden" v-model="form.customer_id" />
+
                             <div class="flex items-center justify-end mt-6">
                                 <Link :href="cancelRoute" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel
                                 </Link>
 
-                                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing || (roles && roles.length > 0 && !selectedRole)">
                                     Create User
                                 </PrimaryButton>
                             </div>

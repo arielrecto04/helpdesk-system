@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Role;
 use App\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -13,17 +14,18 @@ class RolePermissionSeeder extends Seeder
     {
         // Clear existing role_permissions to start fresh
         // Note: We don't truncate user_roles to preserve existing user-role assignments
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-        // Clear role_permissions and permissions so we can reseed cleanly
+        // Disable foreign key checks in a cross-database way, then truncate
+        Schema::disableForeignKeyConstraints();
         DB::table('role_permissions')->truncate();
         DB::table('permissions')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         $this->command->info('Cleared role-permission associations.');
 
         // Define all permissions exactly as required by the system (menu + show + CRUD + special)
         $allPermissions = [
             ['name' => 'view_dashboard', 'description' => 'Can view the main dashboard'],
+            ['name' => 'view_customer_dashboard', 'description' => 'Can view the customer dashboard'],
             ['name' => 'view_profile', 'description' => 'Can view and edit own profile'],
 
             ['name' => 'view_my_tickets_menu', 'description' => 'Can view My Tickets menu'],
@@ -116,6 +118,10 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'can_view_other_locations_tickets', 'description' => 'Can view tickets in other locations'],
             ['name' => 'can_view_other_teams_tickets', 'description' => 'Can view tickets for other teams'],
             ['name' => 'can_view_other_users_tickets', 'description' => 'Can view tickets for other users'],
+
+            ['name' => 'send_ticket', 'description' => 'Can send/create a public ticket'],
+            ['name' => 'edit_sent_ticket', 'description' => 'Can edit tickets they sent'],
+            ['name' => 'delete_sent_ticket', 'description' => 'Can delete tickets they sent'],
         ];
 
         // Create all permissions (idempotent)
@@ -204,5 +210,23 @@ class RolePermissionSeeder extends Seeder
         $helpdeskPermissionIds = Permission::whereIn('name', $helpdeskPermissions)->pluck('id');
         $helpdeskRole->permissions()->sync($helpdeskPermissionIds);
         $this->command->info('helpdesk role created and permissions assigned.');
+
+        // Customer Role (public end users of the system)
+        $customerPermissions = [
+            'view_customer_dashboard', 'view_profile', 'send_ticket', 'edit_sent_ticket','delete_sent_ticket'
+        ];
+
+        // Try to find existing role case-insensitively (to avoid duplicate 'Customer' vs 'customer')
+        $customerRole = Role::whereRaw('LOWER(name) = ?', ['customer'])->first();
+        if (! $customerRole) {
+            $customerRole = Role::firstOrCreate(
+                ['name' => 'customer'],
+                ['description' => 'End user who can create and track tickets']
+            );
+        }
+
+        $customerPermissionIds = Permission::whereIn('name', $customerPermissions)->pluck('id');
+        $customerRole->permissions()->sync($customerPermissionIds);
+        $this->command->info('customer role created and permissions assigned.');
     }
 }

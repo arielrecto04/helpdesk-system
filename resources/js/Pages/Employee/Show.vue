@@ -16,12 +16,12 @@
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
                             <div class="flex justify-between items-center">
                                 <span>Employee Name - {{ employee.name }}</span>
-                                <!-- Add Edit Button & Delete Button-->
-                                <div class="flex space-x-2">
-                                    <Link :href="route('employees.edit', employee.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_employees') || userPermissions.includes('delete_employees'))">
+                                    <Link v-if="userPermissions.includes('edit_employees')" :href="route('employees.edit', employee.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton @click="confirmEmployeeDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_employees')" @click="confirmEmployeeDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -64,14 +64,14 @@
                                         <dd class="mt-1 text-sm text-gray-900">{{ employee.position_name }}</dd>
                                     </div>
                                     <div>
-                                        <dt class="text-sm font-medium text-gray-500">Login Account</dt>
+                                        <dt class="text-sm font-medium text-gray-500">Has Account?</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
                                             <span v-if="employee.has_account" class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                 Account Exists
                                             </span>
-                                            <Link 
-                                                v-else
-                                                :href="route('employees.createAccount', { employee: employee.id })" 
+                                            <Link
+                                                v-else-if="userPermissions && userPermissions.includes('create_users')"
+                                                :href="route('employees.createAccount', { employee: employee.id })"
                                                 class="inline-flex items-center px-3 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none"
                                             >
                                                 Create Account
@@ -109,10 +109,10 @@
                 <Modal :show="confirmingEmployeeDeletion" @close="closeModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900"> 
-                            Are you sure you want to delete this ticket?
+                            Are you sure you want to delete this employee?
                         </h2>
                         <p class="mt-1 text-sm text-gray-600">
-                            This action cannot be undone. This will permanently delete the ticket and all its related data.
+                            This action cannot be undone. This will permanently delete the employee and all its related data.
                         </p>
                         <div class="mt-6 flex justify-end">
                             <SecondaryButton @click="closeModal"> Cancel </SecondaryButton>
@@ -150,6 +150,8 @@ const props = defineProps({
 
 const confirmingEmployeeDeletion = ref(false);
 const form = useForm({});
+const page = usePage();
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 const confirmEmployeeDeletion = () => {
     confirmingEmployeeDeletion.value = true;

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth; // Import ang Auth
 use Inertia\Inertia;
 use Inertia\Response;
 
-class MyTicketController extends Controller
+class MyTicketsController extends Controller
 {
     public function index(): Response
     {

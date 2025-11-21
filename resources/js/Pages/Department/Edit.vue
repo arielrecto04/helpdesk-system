@@ -6,18 +6,16 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
-// --- INAYOS: Pinalitan ng 'department' (singular) ---
+
 const props = defineProps({
     department: Object,
 });
 
-// --- INAYOS: Ginamit ang 'props.department' ---
 const form = useForm({
     department_name: props.department.department_name,
 });
 
 const submit = () => {
-    // --- INAYOS: Ginamit ang 'props.department' at inayos ang route parameter ---
     form.put(route('departments.update', { department: props.department.id }));
 };
 </script>
@@ -48,7 +46,7 @@ const submit = () => {
                                 <InputError class="mt-2" :message="form.errors.department_name" />
                             </div>
                             <div class="flex items-center justify-end mt-6">
-                                <Link :href="route('departments.index')" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                <Link :href="route('departments.show', { department: department.id })" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel
                                 </Link>
                                 <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">

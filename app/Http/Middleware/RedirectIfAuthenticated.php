@@ -21,6 +21,9 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
+                $user = Auth::guard($guard)->user();
+                
+                // Redirect authenticated users to the main dashboard
                 return redirect(RouteServiceProvider::HOME);
             }
         }
@@ -28,3 +31,4 @@ class RedirectIfAuthenticated
         return $next($request);
     }
 }
+

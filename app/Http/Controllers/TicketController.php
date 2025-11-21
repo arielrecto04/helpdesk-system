@@ -98,6 +98,11 @@ class TicketController extends Controller
         ]);
 
         $ticket = Ticket::create($validated);
+        // If the request asked to stay on the customer dashboard, redirect there instead
+        if ($request->query('redirect') === 'dashboard') {
+            return redirect()->route('customer.dashboard')->with('message', 'Ticket created successfully.');
+        }
+
         return redirect()->route('tickets.show', $ticket->id)->with('message', 'Ticket created successfully.');
     }
 
@@ -116,6 +121,12 @@ class TicketController extends Controller
             ->where('helpdesk_teams.id', $ticket->team_id)
             ->exists();
 
+        // Allow customers who created the ticket to view it
+        $isCustomerOwner = false;
+        if ($user->customer) {
+            $isCustomerOwner = $ticket->customer_id === $user->customer->id;
+        }
+
         // Authorization rules:
         // - Admins can view any ticket
         // - Users who belong to the ticket's team can view
@@ -132,6 +143,11 @@ class TicketController extends Controller
             || $user->hasPermissionTo('can_view_other_teams_tickets')
             || $user->hasPermissionTo('can_view_other_locations_tickets')
             || $user->hasPermissionTo('can_view_other_users_tickets');
+
+        // Also allow the customer who created the ticket to view it
+        if ($isCustomerOwner) {
+            $canView = true;
+        }
 
         if (!$canView) {
             abort(403, 'Unauthorized. You do not have permission to view this ticket.');
@@ -166,7 +182,6 @@ class TicketController extends Controller
             || ($ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id)
             || $user->hasPermissionTo('edit_tickets')
             || $user->hasPermissionTo('view_all_tickets')
-            // Allow users with 'edit_my_tickets' to edit tickets assigned to them
             || ($user->hasPermissionTo('edit_my_tickets') && $ticket->assigned_to_user_id !== null && $ticket->assigned_to_user_id === $user->id);
 
         if (!$canEdit) {

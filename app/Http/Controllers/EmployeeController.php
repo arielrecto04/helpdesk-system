@@ -15,6 +15,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB; // <-- IDAGDAG ITO
 use Illuminate\Support\Facades\Hash; // <-- IDAGDAG ITO
 use Illuminate\Validation\Rules; // <-- IDAGDAG ITO
+use App\Models\Role;
 
 class EmployeeController extends Controller
 {
@@ -198,6 +199,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('Users/Create', [
             'prefill' => $prefill,
+            'roles' => Role::all(['id', 'name']),
         ]);
     }
     
@@ -209,7 +211,9 @@ class EmployeeController extends Controller
 
         $validated = $request->validate([
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'email' => 'required|email'
+            'email' => 'required|email',
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,id',
         ]);
         
         if ($employee->email !== $validated['email']) {
@@ -228,6 +232,11 @@ class EmployeeController extends Controller
                 'email' => $employee->email,
                 'password' => Hash::make($validated['password']),
             ]);
+
+            // assign roles if provided
+            if (!empty($validated['roles'])) {
+                $user->roles()->sync($validated['roles']);
+            }
 
             $employee->user_id = $user->id;
             $employee->save();

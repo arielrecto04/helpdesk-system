@@ -40,7 +40,30 @@ class UsersController extends Controller
     public function create(): Response
     {
 
-        return Inertia::render('Users/Create');
+        $customerId = request()->query('customer');
+
+        if ($customerId) {
+            $customer = \App\Models\Customer::find($customerId);
+            if ($customer) {
+                $prefill = [
+                    'first_name' => $customer->first_name,
+                    'middle_name' => $customer->middle_name,
+                    'last_name' => $customer->last_name,
+                    'email' => $customer->email,
+                    'customer_id' => $customer->id,
+                ];
+
+                return Inertia::render('Users/Create', [
+                    'prefill' => $prefill,
+                    'is_customer' => true,
+                    'roles' => Role::all(['id', 'name']),
+                ]);
+            }
+        }
+
+        return Inertia::render('Users/Create', [
+            'roles' => Role::all(['id', 'name']),
+        ]);
     }
 
     /**
@@ -54,15 +77,34 @@ class UsersController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'roles' => 'sometimes|array',
+            'roles.*' => 'exists:roles,id',
+            'customer_id' => 'sometimes|nullable|exists:customers,id',
         ]);
-
-        User::create([
+        $user = User::create([
             'first_name' => $validated['first_name'],
             'last_name' => $validated['last_name'],
             'middle_name' => $validated['middle_name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
+
+        // If roles are provided (e.g., employee flow), assign them
+        if (!empty($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
+        }
+
+        // If created for a customer, ensure 'customer' role exists and assign it
+        if (!empty($validated['customer_id'])) {
+            $customerRole = \App\Models\Role::firstOrCreate(
+                ['name' => 'customer'],
+                ['description' => 'Customer role']
+            );
+            if ($customerRole) {
+                $user->roles()->syncWithoutDetaching([$customerRole->id]);
+            }
+        }
+
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
 

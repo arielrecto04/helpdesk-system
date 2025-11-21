@@ -21,7 +21,6 @@ if (userPermissions.includes('view_my_tickets_menu') || userPermissions.includes
 if (userPermissions.includes('view_all_tickets_menu') || userPermissions.includes('show_all_tickets') || userPermissions.includes('view_tickets') || userPermissions.includes('view_all_tickets')) {
     ticketsItems.push({ name: 'All Tickets', href: route('tickets.index') });
 }
-
 const reportingItems = [];
 if (userPermissions.includes('view_ticket_analysis_menu') || userPermissions.includes('view_reports') || userPermissions.includes('export_tickets')) {
     reportingItems.push({ name: 'Ticket Analysis', href: '#' });

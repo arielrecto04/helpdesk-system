@@ -16,12 +16,12 @@
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
                             <div class="flex justify-between items-center">
                                 <span>Customer Name - {{ customer.name }}</span>
-                                <!-- Add Edit Button & Delete Button-->
-                                <div class="flex space-x-2">
-                                    <Link :href="route('customers.edit', customer.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_customers') || userPermissions.includes('delete_customers'))">
+                                    <Link v-if="userPermissions.includes('edit_customers')" :href="route('customers.edit', customer.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton @click="confirmCustomerDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_customers')" @click="confirmCustomerDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -54,6 +54,21 @@
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Phone</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ customer.phone_number }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Has Account?</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            <span v-if="customer.has_account" class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                Account Exists
+                                            </span>
+                                            <Link
+                                                v-else-if="userPermissions && userPermissions.includes('create_users')"
+                                                :href="route('users.create', { customer: customer.id })"
+                                                class="inline-flex items-center px-3 py-1 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none"
+                                            >
+                                                Create Account
+                                            </Link>
+                                        </dd>
                                     </div>
                                 </dl>
                             </div>
@@ -119,6 +134,8 @@ const props = defineProps({
 
 const confirmingCustomerDeletion = ref(false);
 const form = useForm({});
+const page = usePage();
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 const confirmCustomerDeletion = () => {
     confirmingCustomerDeletion.value = true;
 };

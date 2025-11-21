@@ -71,6 +71,7 @@ class CustomersController extends Controller
      */
     public function show(Customer $customer): Response
     {
+        $hasAccount = \App\Models\User::where('email', $customer->email)->exists();
 
         return Inertia::render('Customer/Show', [
             'customer' => [
@@ -81,6 +82,7 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
+                'has_account' => $hasAccount,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
             ]

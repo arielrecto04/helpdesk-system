@@ -124,4 +124,9 @@ class User extends Authenticatable
             $query->where('name', $permissionName);
         })->exists();
     }
+
+    public function customer()
+    {
+        return $this->hasOne(\App\Models\Customer::class);
+    }
 }

@@ -16,11 +16,11 @@
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
                             <div class="flex justify-between items-center">
                                 <span>Tag Name {{ tag.name }}</span>
-                                <div class="flex space-x-2">
-                                    <Link :href="route('tags.edit', tag.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_tags') || userPermissions.includes('delete_tags'))">
+                                    <Link v-if="userPermissions.includes('edit_tags')" :href="route('tags.edit', tag.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton @click="confirmTagDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_tags')" @click="confirmTagDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -90,6 +90,8 @@ const props = defineProps({
 
 const confirmingTagDeletion = ref(false);
 const form = useForm({});
+const page = usePage();
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 const confirmTagDeletion = () => {
     confirmingTagDeletion.value = true;

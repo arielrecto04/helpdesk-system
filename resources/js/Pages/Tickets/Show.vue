@@ -16,12 +16,12 @@
                         <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
                             <div class="flex justify-between items-center">
                                 <span>Ticket #{{ ticket.id }} - {{ ticket.subject }}</span>
-                                <!-- Add Edit Button & Delete Button-->
-                                <div class="flex space-x-2">
-                                    <Link :href="route('tickets.edit', ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_tickets') || userPermissions.includes('delete_tickets'))">
+                                    <Link v-if="userPermissions.includes('edit_tickets')" :href="route('tickets.edit', ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton @click="confirmTicketDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_tickets')" @click="confirmTicketDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -149,7 +149,9 @@ const props = defineProps({
 const confirmingTicketDeletion = ref(false);
 const form = useForm({});
 
-const authUser = usePage().props.auth.user;
+const page = usePage();
+const authUser = page.props.auth.user;
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 const confirmTicketDeletion = () => {
     confirmingTicketDeletion.value = true;
