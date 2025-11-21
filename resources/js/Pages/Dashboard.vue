@@ -178,7 +178,7 @@ const getStageClass = (stage) => {
                         <!-- View Tickets Button (hidden if user lacks access) -->
                         <div v-if="team.canView">
                             <Link 
-                                :href="route('team.tickets', team.id)" 
+                                :href="route('teamtickets.index', { team: team.id })" 
                                 class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors text-center block"
                             >
                                 View Tickets

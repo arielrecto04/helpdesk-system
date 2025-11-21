@@ -18,7 +18,7 @@
                                 <span>Ticket #{{ ticket.id }} - {{ ticket.subject }}</span>
                                 <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
                                 <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_tickets') || userPermissions.includes('delete_tickets'))">
-                                    <Link v-if="userPermissions.includes('edit_tickets')" :href="route('tickets.edit', ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <Link v-if="userPermissions.includes('edit_tickets')" :href="route(`${routePrefix}.edit`, ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
                                     <DangerButton v-if="userPermissions.includes('delete_tickets')" @click="confirmTicketDeletion">Delete</DangerButton>
@@ -152,13 +152,14 @@ const form = useForm({});
 const page = usePage();
 const authUser = page.props.auth.user;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+const routePrefix = route().current('teamtickets.*') ? 'teamtickets' : route().current('alltickets.*') ? 'alltickets' : 'mytickets';
 
 const confirmTicketDeletion = () => {
     confirmingTicketDeletion.value = true;
 };
 
 const deleteTicket = () => {
-    form.delete(route('tickets.destroy', props.ticket.id), {
+    form.delete(route(`${routePrefix}.destroy`, props.ticket.id), {
         onFinish: () => {
             confirmingTicketDeletion.value = false;
         },

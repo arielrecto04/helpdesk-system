@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use App\Models\Customer;
+use App\Models\HelpdeskTeam;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // Import ang Auth
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
 
 class MyTicketsController extends Controller
 {
@@ -23,5 +26,79 @@ class MyTicketsController extends Controller
             'tickets' => $tickets,
             'pageTitle' => 'My Tickets'
         ]);
+    }
+
+    public function create(): Response
+    {
+        $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
+        $teams = HelpdeskTeam::latest()->get(['id', 'name']);
+
+        return Inertia::render('MyTickets/Create', [
+            'customers' => $customers->map(fn($c) => ['id' => $c->id, 'name' => $c->first_name . ' ' . $c->last_name]),
+            'teams' => $teams,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'customer_id' => 'required|exists:customers,id',
+            'team_id' => 'required|exists:helpdesk_teams,id',
+            'assigned_to_user_id' => 'nullable|exists:users,id',
+            'priority' => 'nullable|string|max:50',
+            'stage' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+        ]);
+
+        Ticket::create($validated);
+
+        return redirect()->route('mytickets.index')->with('success', 'Ticket created successfully.');
+    }
+
+    public function show(Ticket $ticket): Response
+    {
+        $ticket->load(['customer', 'team', 'assignedTo', 'tags']);
+
+        return Inertia::render('MyTickets/Show', [
+            'ticket' => $ticket,
+        ]);
+    }
+
+    public function edit(Ticket $ticket): Response
+    {
+        $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
+        $teams = HelpdeskTeam::latest()->get(['id', 'name']);
+
+        return Inertia::render('MyTickets/Edit', [
+            'ticket' => $ticket,
+            'customers' => $customers->map(fn($c) => ['id' => $c->id, 'name' => $c->first_name . ' ' . $c->last_name]),
+            'teams' => $teams,
+        ]);
+    }
+
+    public function update(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $validated = $request->validate([
+            'subject' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'customer_id' => 'required|exists:customers,id',
+            'team_id' => 'required|exists:helpdesk_teams,id',
+            'assigned_to_user_id' => 'nullable|exists:users,id',
+            'priority' => 'nullable|string|max:50',
+            'stage' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+        ]);
+
+        $ticket->update($validated);
+
+        return redirect()->route('mytickets.index')->with('success', 'Ticket updated successfully.');
+    }
+
+    public function destroy(Ticket $ticket): RedirectResponse
+    {
+        $ticket->delete();
+        return redirect()->route('mytickets.index')->with('success', 'Ticket deleted successfully.');
     }
 }

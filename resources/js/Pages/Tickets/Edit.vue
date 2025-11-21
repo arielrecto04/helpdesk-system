@@ -31,8 +31,10 @@ const form = useForm({
     deadline: formattedDeadline,
 });
 
+const routePrefix = route().current('teamtickets.*') ? 'teamtickets' : route().current('alltickets.*') ? 'alltickets' : 'mytickets';
+
 const submit = () => {
-    form.put(route('tickets.update', props.ticket.id), {
+    form.put(route(`${routePrefix}.update`, props.ticket.id), {
         onSuccess: () => {
             // Handle success, maybe show a notification
         },
@@ -124,7 +126,7 @@ const submit = () => {
                             </div>
 
                             <div class="flex items-center justify-end mt-6">
-                                <Link :href="route('tickets.show', ticket.id)" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                <Link :href="route(`${routePrefix}.show`, ticket.id)" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel
                                 </Link>
 

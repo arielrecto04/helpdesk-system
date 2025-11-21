@@ -12,9 +12,6 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing role_permissions to start fresh
-        // Note: We don't truncate user_roles to preserve existing user-role assignments
-        // Disable foreign key checks in a cross-database way, then truncate
         Schema::disableForeignKeyConstraints();
         DB::table('role_permissions')->truncate();
         DB::table('permissions')->truncate();
@@ -22,23 +19,28 @@ class RolePermissionSeeder extends Seeder
 
         $this->command->info('Cleared role-permission associations.');
 
-        // Define all permissions exactly as required by the system (menu + show + CRUD + special)
         $allPermissions = [
             ['name' => 'view_dashboard', 'description' => 'Can view the main dashboard'],
             ['name' => 'view_customer_dashboard', 'description' => 'Can view the customer dashboard'],
             ['name' => 'view_profile', 'description' => 'Can view and edit own profile'],
 
-            ['name' => 'view_my_tickets_menu', 'description' => 'Can view My Tickets menu'],
-            ['name' => 'show_my_tickets', 'description' => 'Can view my tickets list'],
-            ['name' => 'create_my_tickets', 'description' => 'Can create my tickets'],
-            ['name' => 'edit_my_tickets', 'description' => 'Can edit my tickets'],
-            ['name' => 'delete_my_tickets', 'description' => 'Can delete my tickets'],
+            ['name' => 'view_teamtickets_menu', 'description' => 'Can view Team Tickets menu'],
+            ['name' => 'show_teamtickets', 'description' => 'Can view Team tickets list'],
+            ['name' => 'create_teamtickets', 'description' => 'Can create Team tickets'],
+            ['name' => 'edit_teamtickets', 'description' => 'Can edit Team tickets'],
+            ['name' => 'delete_teamtickets', 'description' => 'Can delete Team tickets'],
+            
+            ['name' => 'view_mytickets_menu', 'description' => 'Can view My Tickets menu'],
+            ['name' => 'show_mytickets', 'description' => 'Can view My tickets list'],
+            ['name' => 'create_mytickets', 'description' => 'Can create My tickets'],
+            ['name' => 'edit_mytickets', 'description' => 'Can edit My tickets'],
+            ['name' => 'delete_mytickets', 'description' => 'Can delete My tickets'],
 
-            ['name' => 'view_all_tickets_menu', 'description' => 'Can view All Tickets menu'],
-            ['name' => 'show_all_tickets', 'description' => 'Can view all tickets list'],
-            ['name' => 'create_all_tickets', 'description' => 'Can create tickets (all)'],
-            ['name' => 'edit_all_tickets', 'description' => 'Can edit tickets (all)'],
-            ['name' => 'delete_all_tickets', 'description' => 'Can delete tickets (all)'],
+            ['name' => 'view_alltickets_menu', 'description' => 'Can view All Tickets menu'],
+            ['name' => 'show_alltickets', 'description' => 'Can view All tickets list'],
+            ['name' => 'create_alltickets', 'description' => 'Can create All tickets'],
+            ['name' => 'edit_alltickets', 'description' => 'Can edit All tickets'],
+            ['name' => 'delete_alltickets', 'description' => 'Can delete All tickets'],
 
             ['name' => 'view_ticket_analysis_menu', 'description' => 'Can view ticket analysis menu'],
             ['name' => 'view_customer_ratings_menu', 'description' => 'Can view customer ratings menu'],
@@ -126,36 +128,35 @@ class RolePermissionSeeder extends Seeder
 
         // Create all permissions (idempotent)
         foreach ($allPermissions as $permission) {
-            // Use name as the lookup key to avoid duplicate insertion when descriptions change
+
             Permission::firstOrCreate(
                 ['name' => $permission['name']],
                 ['description' => $permission['description'] ?? null]
             );
         }
-
         $this->command->info('All application permissions have been seeded.');
 
-        // Define role permission sets for non-admin roles
         // Agent permissions: only use permission names from the approved list
         $agentPermissions = [
             'view_dashboard', 'view_profile',
-            'view_my_tickets_menu', 'show_my_tickets', 'create_my_tickets', 'edit_my_tickets',
-            'view_all_tickets_menu', 'show_all_tickets',
+            'view_mytickets_menu', 'show_mytickets', 'create_mytickets', 'edit_mytickets',
+            'view_alltickets_menu', 'show_alltickets',
             'view_customers_menu', 'show_customers', 'create_customers', 'edit_customers',
         ];
 
         // Helpdesk permissions: only use permission names from the approved list
         $helpdeskPermissions = [
             'view_dashboard', 'view_profile',
-            'view_my_tickets_menu', 'show_my_tickets', 'edit_my_tickets',
-            'view_all_tickets_menu', 'show_all_tickets',
+            'view_mytickets_menu', 'show_mytickets', 'edit_mytickets',
+            'view_alltickets_menu', 'show_alltickets',
             'can_view_other_teams_tickets', 'can_view_other_users_tickets',
         ];
 
         $adminPermissions = [
             'view_dashboard', 'view_profile',
-            'view_my_tickets_menu','show_my_tickets','create_my_tickets','edit_my_tickets','delete_my_tickets',
-            'view_all_tickets_menu','show_all_tickets','create_all_tickets','edit_all_tickets','delete_all_tickets',
+            'view_mytickets_menu','show_mytickets','create_mytickets','edit_mytickets','delete_mytickets',
+            'view_alltickets_menu','show_alltickets','create_alltickets','edit_alltickets','delete_alltickets',
+            'view_teamtickets_menu','show_teamtickets','create_teamtickets','edit_teamtickets','delete_teamtickets',
             'view_ticket_analysis_menu',
             'view_customer_ratings_menu',
             'view_helpdeskteams_menu','show_helpdeskteams','create_helpdeskteams','edit_helpdeskteams','delete_helpdeskteams',
@@ -173,7 +174,6 @@ class RolePermissionSeeder extends Seeder
             'can_view_other_locations_tickets','can_view_other_teams_tickets','can_view_other_users_tickets',
             
         ];
-
 
         // Super Admin Role (all permissions)
         $superAdminRole = Role::firstOrCreate(
@@ -213,7 +213,7 @@ class RolePermissionSeeder extends Seeder
 
         // Customer Role (public end users of the system)
         $customerPermissions = [
-            'view_customer_dashboard', 'view_profile', 'send_ticket', 'edit_sent_ticket','delete_sent_ticket'
+            'view_customer_dashboard','send_ticket', 'edit_sent_ticket','delete_sent_ticket'
         ];
 
         // Try to find existing role case-insensitively (to avoid duplicate 'Customer' vs 'customer')

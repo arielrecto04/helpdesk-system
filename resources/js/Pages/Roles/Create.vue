@@ -21,40 +21,59 @@ const form = useForm({
 const categorizedPermissions = computed(() => {
     const categories = {
         'General': [],
-        'Tickets': [],
-        'Users & Roles': [],
+        'My Tickets': [],
+        'All Tickets': [],
+        'Team Tickets': [],
+        'Users': [],
+        'Roles': [],
+        'Permissions': [],
         'Customers': [],
         'Employees': [],
-        'Departments & Positions': [],
+        'Departments': [],
+        'Positions': [],
         'Helpdesk Teams': [],
         'Tags': [],
         'Companies': [],
         'Reports': [],
+        'Others': [],
     };
 
     props.all_permissions.forEach(permission => {
         const name = permission.name;
         
-        if (name.includes('dashboard') || name.includes('profile') || name.includes('settings')) {
+        
+        if (name.includes('dashboard') || name.includes('profile') || raw.includes('settings')) {
             categories['General'].push(permission);
-        } else if (name.includes('ticket')) {
-            categories['Tickets'].push(permission);
-        } else if (name.includes('user') || name.includes('role') || name.includes('permission')) {
-            categories['Users & Roles'].push(permission);
+        } else if (name.includes('myticket')) {
+            categories['My Tickets'].push(permission);
+        } else if (name.includes('allticket')) {
+            categories['All Tickets'].push(permission);
+        } else if (name.includes('teamticket')) {
+            categories['Team Tickets'].push(permission);
+        } else if (name.includes('user')) {
+            categories['Users'].push(permission);
+        } else if (name.includes('role')) {
+            categories['Roles'].push(permission);
+        } else if (name.includes('permission')) {
+            categories['Permissions'].push(permission);
         } else if (name.includes('customer')) {
             categories['Customers'].push(permission);
         } else if (name.includes('employee')) {
             categories['Employees'].push(permission);
-        } else if (name.includes('department') || name.includes('position')) {
-            categories['Departments & Positions'].push(permission);
-        } else if (name.includes('helpdeskteam')) {
+        } else if (name.includes('department')) {
+            categories['Departments'].push(permission);
+        } else if (name.includes('position') || name.includes('positions')) {
+            categories['Positions'].push(permission);
+        } else if (name.includes('helpdesk')) {
             categories['Helpdesk Teams'].push(permission);
         } else if (name.includes('tag')) {
             categories['Tags'].push(permission);
-        } else if (name.includes('compan')) {
+        } else if (name.includes('compan') || name.includes('company')) {
             categories['Companies'].push(permission);
-        } else if (name.includes('report')) {
+        } else if (name.includes('report') || raw.includes('ticket_analysis') || raw.includes('customer_ratings')) {
             categories['Reports'].push(permission);
+        } else {
+            categories['Others'].push(permission);
         }
     });
 

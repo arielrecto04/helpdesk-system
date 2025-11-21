@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AllTicketsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\HelpdeskTeamsController;
@@ -41,21 +42,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update')->middleware('permission:view_profile');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy')->middleware('permission:view_profile');
 
-    // Custom Ticket Routes
-    Route::get('/my-tickets', [MyTicketsController::class, 'index'])->name('tickets.my')->middleware('permission:show_my_tickets');
-    Route::get('/my-tickets/create', [TicketController::class, 'create'])->name('tickets.create')->middleware('permission:create_my_tickets');
-    // Team tickets route: controller enforces access (admins allowed), so remove permission middleware
-    Route::get('/team/{teamId}/tickets', [TeamTicketsController::class, 'index'])->name('team.tickets');
+    Route::get('/teamtickets', [TeamTicketsController::class, 'index'])->name('teamtickets.index')->middleware('permission:show_teamtickets');
+    Route::get('/teamtickets/create', [TeamTicketsController::class, 'create'])->name('teamtickets.create')->middleware('permission:create_teamtickets');
+    Route::post('/teamtickets', [TeamTicketsController::class, 'store'])->name('teamtickets.store')->middleware('permission:create_teamtickets');
+    Route::get('/teamtickets/{ticket}', [TeamTicketsController::class, 'show'])->name('teamtickets.show')->middleware('permission:show_teamtickets');
+    Route::get('/teamtickets/{ticket}/edit', [TeamTicketsController::class, 'edit'])->name('teamtickets.edit')->middleware('permission:edit_teamtickets');
+    Route::put('/teamtickets/{ticket}', [TeamTicketsController::class, 'update'])->name('teamtickets.update')->middleware('permission:edit_teamtickets');
+    Route::delete('/teamtickets/{ticket}', [TeamTicketsController::class, 'destroy'])->name('teamtickets.destroy')->middleware('permission:delete_teamtickets');
 
-    Route::get('/all-tickets', [TicketController::class, 'index'])->name('tickets.all')->middleware('permission:show_all_tickets');
-    Route::resource('tickets', TicketController::class);
+    Route::get('/alltickets', [AllTicketsController::class, 'index'])->name('alltickets.index')->middleware('permission:show_alltickets');
+    Route::get('/alltickets/create', [AllTicketsController::class, 'create'])->name('alltickets.create')->middleware('permission:create_alltickets');
+    Route::post('/alltickets', [AllTicketsController::class, 'store'])->name('alltickets.store')->middleware('permission:create_alltickets');
+    Route::get('/alltickets/{ticket}', [AllTicketsController::class, 'show'])->name('alltickets.show')->middleware('permission:show_alltickets');
+    Route::get('/alltickets/{ticket}/edit', [AllTicketsController::class, 'edit'])->name('alltickets.edit')->middleware('permission:edit_alltickets');
+    Route::put('/alltickets/{ticket}', [AllTicketsController::class, 'update'])->name('alltickets.update')->middleware('permission:edit_alltickets');
+    Route::delete('/alltickets/{ticket}', [AllTicketsController::class, 'destroy'])->name('alltickets.destroy')->middleware('permission:delete_alltickets');
 
-    Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index')->middleware('permission:show_all_tickets');
-    Route::post('/tickets', [TicketController::class, 'store'])->name('tickets.store')->middleware('permission:create_tickets');
-    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show')->middleware('permission:show_all_tickets|show_my_tickets');
-    Route::get('/tickets/{ticket}/edit', [TicketController::class, 'edit'])->name('tickets.edit')->middleware('permission:edit_tickets');
-    Route::put('/tickets/{ticket}', [TicketController::class, 'update'])->name('tickets.update')->middleware('permission:edit_tickets');
-    Route::delete('/tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy')->middleware('permission:delete_tickets');
+    Route::get('/mytickets', [MyTicketsController::class, 'index'])->name('mytickets.index')->middleware('permission:show_mytickets');
+    Route::get('/mytickets/create', [MyTicketsController::class, 'create'])->name('mytickets.create')->middleware('permission:create_mytickets');
+    Route::post('/mytickets', [MyTicketsController::class, 'store'])->name('mytickets.store')->middleware('permission:create_mytickets');
+    Route::get('/mytickets/{ticket}', [MyTicketsController::class, 'show'])->name('mytickets.show')->middleware('permission:show_mytickets');
+    Route::get('/mytickets/{ticket}/edit', [MyTicketsController::class, 'edit'])->name('mytickets.edit')->middleware('permission:edit_mytickets');
+    Route::put('/mytickets/{ticket}', [MyTicketsController::class, 'update'])->name('mytickets.update')->middleware('permission:edit_mytickets');
+    Route::delete('/mytickets/{ticket}', [MyTicketsController::class, 'destroy'])->name('mytickets.destroy')->middleware('permission:delete_mytickets');
 
     Route::get('/helpdeskteams', [HelpdeskTeamsController::class, 'index'])->name('helpdeskteams.index')->middleware('permission:show_helpdeskteams');
     Route::get('/helpdeskteams/create', [HelpdeskTeamsController::class, 'create'])->name('helpdeskteams.create')->middleware('permission:create_helpdeskteams');

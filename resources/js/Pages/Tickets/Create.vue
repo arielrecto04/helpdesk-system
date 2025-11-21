@@ -29,8 +29,10 @@ const form = useForm({
     deadline: '',
 });
 
+const storePrefix = route().current('teamtickets.*') ? 'teamtickets' : route().current('alltickets.*') ? 'alltickets' : 'mytickets';
+
 const submit = () => {
-    form.post(route('tickets.store'), {
+    form.post(route(`${storePrefix}.store`), {
         onFinish: () => form.reset('subject', 'description'),
     });
 };
@@ -119,7 +121,7 @@ const submit = () => {
                             </div>
 
                             <div class="flex items-center justify-end mt-6">
-                                <Link :href="route('tickets.my')" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                <Link :href="route(`${storePrefix}.index`)" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel
                                 </Link>
 
