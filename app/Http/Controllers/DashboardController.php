@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\User;
+use App\Models\Employee;
 
 class DashboardController extends Controller
 {
@@ -19,30 +20,30 @@ class DashboardController extends Controller
         return '2.5h';
     }
 
-    private function calculateUserSuccessRate($userId)
+    private function calculateUserSuccessRate($employeeId)
     {
-        $totalResolved = Ticket::where('assigned_to_user_id', $userId)
+        $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->count();
 
-        $totalAssigned = Ticket::where('assigned_to_user_id', $userId)
+        $totalAssigned = Ticket::where('assigned_to_employee_id', $employeeId)
             ->count();
 
         return $totalAssigned > 0 ? round(($totalResolved / $totalAssigned) * 100) : 0;
     }
 
-    private function calculateUserAverageRating($userId)
+    private function calculateUserAverageRating($employeeId)
     {
-        $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($userId) {
-            $query->where('assigned_to_user_id', $userId);
+        $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
+            $query->where('assigned_to_employee_id', $employeeId);
         })->avg('rating');
 
         return round($ratings ?? 0, 1);
     }
 
-    private function calculateWeeklyClosedAverage($userId)
+    private function calculateWeeklyClosedAverage($employeeId)
     {
-        $weeklyCount = Ticket::where('assigned_to_user_id', $userId)
+        $weeklyCount = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
             ->count();
@@ -50,24 +51,24 @@ class DashboardController extends Controller
         return round($weeklyCount / 7, 1);
     }
 
-    private function calculateWeeklySuccessRate($userId)
+    private function calculateWeeklySuccessRate($employeeId)
     {
-        $totalResolved = Ticket::where('assigned_to_user_id', $userId)
+        $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
             ->count();
 
-        $totalAssigned = Ticket::where('assigned_to_user_id', $userId)
+        $totalAssigned = Ticket::where('assigned_to_employee_id', $employeeId)
             ->whereBetween('created_at', [now()->subDays(7), now()])
             ->count();
 
         return $totalAssigned > 0 ? round(($totalResolved / $totalAssigned) * 100) : 0;
     }
 
-    private function calculateWeeklyAverageRating($userId)
+    private function calculateWeeklyAverageRating($employeeId)
     {
-        $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($userId) {
-            $query->where('assigned_to_user_id', $userId);
+        $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
+            $query->where('assigned_to_employee_id', $employeeId);
         })
         ->whereBetween('submitted_on', [now()->subDays(7), now()])
         ->avg('rating');
@@ -92,8 +93,14 @@ class DashboardController extends Controller
 
         // User's personal stats - for admin show all tickets, for others show only their assigned tickets
         $ticketsQuery = Ticket::query();
+        $employeeId = Employee::where('user_id', $user->id)->value('id');
         if (!$isAdmin) {
-            $ticketsQuery->where('assigned_to_user_id', $user->id);
+            if ($employeeId) {
+                $ticketsQuery->where('assigned_to_employee_id', $employeeId);
+            } else {
+                // No employee record -> no assigned tickets
+                $ticketsQuery->whereNull('id');
+            }
         }
 
         $userStats = [
@@ -110,16 +117,16 @@ class DashboardController extends Controller
                 ->where('stage', '!=', 'Resolved')
                 ->where('stage', '!=', 'Closed')
                 ->count(),
-            'closedTickets' => Ticket::where('assigned_to_user_id', $user->id)
+            'closedTickets' => ($employeeId ? Ticket::where('assigned_to_employee_id', $employeeId) : Ticket::whereNull('id'))
                 ->where('stage', 'Resolved')
                 ->whereDate('updated_at', today())
                 ->count(),
-            'successRate' => $this->calculateUserSuccessRate($user->id),
-            'averageRating' => $this->calculateUserAverageRating($user->id),
+            'successRate' => $this->calculateUserSuccessRate($employeeId),
+            'averageRating' => $this->calculateUserAverageRating($employeeId),
             'weeklyAvg' => [
-                'closed' => $this->calculateWeeklyClosedAverage($user->id),
-                'success' => $this->calculateWeeklySuccessRate($user->id),
-                'rating' => $this->calculateWeeklyAverageRating($user->id)
+                'closed' => $this->calculateWeeklyClosedAverage($employeeId),
+                'success' => $this->calculateWeeklySuccessRate($employeeId),
+                'rating' => $this->calculateWeeklyAverageRating($employeeId)
             ]
         ];
 
@@ -147,7 +154,7 @@ class DashboardController extends Controller
                         ->where('stage', 'Open')
                         ->count(),
                     'unassigned' => Ticket::where('team_id', $team->id)
-                        ->whereNull('assigned_to_user_id')
+                        ->whereNull('assigned_to_employee_id')
                         ->count(),
                     'urgent' => Ticket::where('team_id', $team->id)
                         ->where('priority', 'Urgent')
@@ -206,6 +213,7 @@ class DashboardController extends Controller
             'user' => array_merge($user->toArray(), [
                 'roles' => $user->roles()->pluck('name')->toArray(),
                 'permissions' => $permissions,
+                'employee_id' => $employeeId,
             ])
         ];
 

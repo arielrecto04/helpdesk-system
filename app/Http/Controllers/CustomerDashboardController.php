@@ -93,7 +93,7 @@ class CustomerDashboardController extends Controller
         $data = array_merge($validated, [
             'customer_id' => $customer->id,
             // customers must not assign support user
-            'assigned_to_user_id' => null,
+            'assigned_to_employee_id' => null,
             'stage' => 'Open',
         ]);
 

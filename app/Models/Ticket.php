@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Employee;
 
 class Ticket extends Model
 {
@@ -14,7 +15,7 @@ class Ticket extends Model
         'description',
         'customer_id',
         'team_id',
-        'assigned_to_user_id',
+        'assigned_to_employee_id',
         'priority',
         'stage',
         'deadline'
@@ -38,7 +39,7 @@ class Ticket extends Model
 
     public function assignedTo()
     {
-        return $this->belongsTo(User::class, 'assigned_to_user_id');
+        return $this->belongsTo(Employee::class, 'assigned_to_employee_id');
     }
 
     public function tags()

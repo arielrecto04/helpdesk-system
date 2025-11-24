@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Models\Employee;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -41,10 +42,14 @@ class HandleInertiaRequests extends Middleware
                 ->values()
                 ->toArray();
 
+            // Get employee id if this user is linked to an employee record
+            $employeeId = Employee::where('user_id', $user->id)->value('id');
+
             $auth = [
                 'user' => array_merge($user->toArray(), [
                     'roles' => $roles,
                     'permissions' => $permissions,
+                    'employee_id' => $employeeId,
                 ])
             ];
         }

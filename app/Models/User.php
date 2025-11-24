@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -84,9 +85,17 @@ class User extends Authenticatable
         );
     }
 
-    public function assignedTickets(): HasMany
+    public function assignedTickets(): HasManyThrough
     {
-        return $this->hasMany(Ticket::class, 'assigned_to_user_id');
+        // Tickets assigned to this user's employee record
+        return $this->hasManyThrough(
+            Ticket::class,
+            Employee::class,
+            'user_id', // Foreign on Employee table...
+            'assigned_to_employee_id', // Foreign on Ticket table...
+            'id', // Local key on User
+            'id' // Local key on Employee
+        );
     }
 
     public function createdTickets(): HasMany

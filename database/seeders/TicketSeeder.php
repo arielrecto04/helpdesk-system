@@ -4,21 +4,26 @@ namespace Database\Seeders;
 
 use App\Models\Ticket;
 use Illuminate\Database\Seeder;
-use App\Models\Tag; // <-- IDINAGDAG
-use App\Models\Customer; // <-- Idinagdag para mas malinis
-use App\Models\HelpdeskTeam; // <-- Idinagdag para mas malinis
-use App\Models\User; // <-- Idinagdag para mas malinis
+use App\Models\Tag;
+use App\Models\Customer;
+use App\Models\HelpdeskTeam;
+use App\Models\User;
 
 class TicketSeeder extends Seeder
 {
     public function run(): void
     {
-        // Ginamit ang na-import na models
         $customers = Customer::all();
         $teams = HelpdeskTeam::all();
-        $agents = User::whereHas('roles', function($query) {
+        $agentUsers = User::whereHas('roles', function($query) {
             $query->where('name', 'agent');
         })->get();
+
+        $agents = \App\Models\Employee::whereIn('user_id', $agentUsers->pluck('id'))->get();
+        if ($agents->isEmpty()) {
+            $this->command->warn('No employees are linked to agent user accounts. Falling back to any Employee records.');
+            $agents = \App\Models\Employee::all();
+        }
 
 
         $tagIds = Tag::pluck('id');
@@ -63,23 +68,141 @@ class TicketSeeder extends Seeder
                 'priority' => 'Medium',
                 'stage' => 'Resolved',
                 'deadline' => now()->addDays(1)
+            ],
+            [
+                'subject' => 'Monitor flickering intermittently',
+                'description' => 'My monitor flickers when I open multiple browser tabs.',
+                'priority' => 'Low',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(3)
+            ],
+            [
+                'subject' => 'ERP system slow during peak hours',
+                'description' => 'ERP response time becomes very slow around 10AM-2PM.',
+                'priority' => 'High',
+                'stage' => 'In Progress',
+                'deadline' => now()->addDays(2)
+            ],
+            [
+                'subject' => 'Mobile app login issue',
+                'description' => 'Customers report they cannot login to the mobile app.',
+                'priority' => 'Urgent',
+                'stage' => 'Pending Customer',
+                'deadline' => now()->addDay()
+            ],
+            [
+                'subject' => 'Database backup failed last night',
+                'description' => 'Automated backup job returned exit code 1.',
+                'priority' => 'High',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(1)
+            ],
+            [
+                'subject' => 'VPN access request for remote employee',
+                'description' => 'Please grant VPN access to contractor for 2 weeks.',
+                'priority' => 'Medium',
+                'stage' => 'Resolved',
+                'deadline' => now()->addDays(7)
+            ],
+            [
+                'subject' => 'Two-factor authentication setup',
+                'description' => 'Need assistance setting up 2FA on my account.',
+                'priority' => 'Low',
+                'stage' => 'Closed',
+                'deadline' => now()->addDays(4)
+            ],
+            [
+                'subject' => 'Broken office chair',
+                'description' => 'The adjustment lever is broken and the chair tilts forward.',
+                'priority' => 'Low',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(10)
+            ],
+            [
+                'subject' => 'Projector not powering on in Training Room',
+                'description' => 'Projector shows no lights when switched on.',
+                'priority' => 'Medium',
+                'stage' => 'In Progress',
+                'deadline' => now()->addDays(2)
+            ],
+            [
+                'subject' => 'Access rights for shared drive',
+                'description' => 'Request access to Marketing shared drive for new hire.',
+                'priority' => 'High',
+                'stage' => 'Pending Customer',
+                'deadline' => now()->addDays(1)
+            ],
+            [
+                'subject' => 'Billing discrepancy on invoice #4521',
+                'description' => 'Customer claims duplicate charge on last invoice.',
+                'priority' => 'Urgent',
+                'stage' => 'In Progress',
+                'deadline' => now()->addDay()
+            ],
+            [
+                'subject' => 'Request for new mouse',
+                'description' => 'Wireless mouse that was provided is malfunctioning.',
+                'priority' => 'Low',
+                'stage' => 'Resolved',
+                'deadline' => now()->addDays(5)
+            ],
+            [
+                'subject' => 'Calendar sync issue with Outlook',
+                'description' => 'Events from Google Calendar are not syncing to Outlook.',
+                'priority' => 'Medium',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(3)
+            ],
+            [
+                'subject' => 'Phishing email reported',
+                'description' => 'Multiple staff received a suspicious email asking for credentials.',
+                'priority' => 'High',
+                'stage' => 'In Progress',
+                'deadline' => now()->addDay()
+            ],
+            [
+                'subject' => 'Phone line static on extension 204',
+                'description' => 'There is constant static noise during calls.',
+                'priority' => 'Medium',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(4)
+            ],
+            [
+                'subject' => 'Antivirus false positive on shared folder',
+                'description' => 'Antivirus quarantined several harmless files.',
+                'priority' => 'High',
+                'stage' => 'Pending Customer',
+                'deadline' => now()->addDays(2)
+            ],
+            [
+                'subject' => 'RAM upgrade request for design workstation',
+                'description' => 'Request to upgrade RAM from 8GB to 16GB for better performance.',
+                'priority' => 'Medium',
+                'stage' => 'Open',
+                'deadline' => now()->addDays(7)
+            ],
+            [
+                'subject' => 'Server room cable replacement',
+                'description' => 'Replace damaged CAT6 cable in rack 3.',
+                'priority' => 'High',
+                'stage' => 'In Progress',
+                'deadline' => now()->addDays(1)
+            ],
+            [
+                'subject' => 'CCTV footage access for incident on 11/20',
+                'description' => 'Security requests access to CCTV recordings for review.',
+                'priority' => 'Urgent',
+                'stage' => 'Open',
+                'deadline' => now()->addDay()
             ]
         ];
 
-        // INAYOS ANG LOOP
-        foreach ($tickets as $ticketData) { // Pinalitan ang $ticket ng $ticketData
+        foreach ($tickets as $ticketData) { 
             $ticketData['customer_id'] = $customers->random()->id;
             $ticketData['team_id'] = $teams->random()->id;
-            $ticketData['assigned_to_user_id'] = $agents->random()->id;
-            
-            // I-CREATE ANG TICKET AT I-SAVE SA VARIABLE
+            $ticketData['assigned_to_employee_id'] = $agents->random()->id;
             $newTicket = Ticket::create($ticketData);
-            
-            // I-ATTACH ANG RANDOM TAGS
-            // Kumuha ng 1 hanggang 3 random tags
             $randomTagIds = $tagIds->random(rand(1, min(3, $tagIds->count())));
-            
-            // I-attach ang mga ito sa ticket na kakagawa lang
             $newTicket->tags()->attach($randomTagIds);
         }
     }

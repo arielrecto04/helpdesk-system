@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('ticket_id');
             $table->unsignedBigInteger('customer_id');
-            $table->unsignedBigInteger('assigned_to_user_id')->nullable();
+            $table->unsignedBigInteger('assigned_to_employee_id')->nullable();
             $table->unsignedBigInteger('team_id')->nullable();
             
             $table->tinyInteger('rating'); // Validation (1-5) should be in your application logic
@@ -37,10 +37,10 @@ return new class extends Migration
                   ->on('customers')
                   ->onDelete('cascade'); // If customer is deleted, delete their ratings
             
-            $table->foreign('assigned_to_user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null'); // Keep rating, but remove link to deleted user
+            $table->foreign('assigned_to_employee_id')
+                ->references('id')
+                ->on('employees')
+                ->nullOnDelete(); // Keep rating, but remove link to deleted employee
             
             $table->foreign('team_id')
                   ->references('id')

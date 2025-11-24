@@ -46,4 +46,8 @@ return new class extends Migration
                   ->onDelete('set null');
         });
     }
+    public function down(): void
+    {
+        Schema::dropIfExists('employees');
+    }
 };

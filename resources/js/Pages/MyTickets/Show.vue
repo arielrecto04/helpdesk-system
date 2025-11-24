@@ -17,11 +17,11 @@
                             <div class="flex justify-between items-center">
                                 <span>Ticket #{{ ticket.id }} - {{ ticket.subject }}</span>
                                 <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
-                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_tickets') || userPermissions.includes('delete_tickets'))">
-                                    <Link v-if="userPermissions.includes('edit_tickets')" :href="route(`${routePrefix}.edit`, ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_mytickets') || userPermissions.includes('delete_mytickets'))">
+                                    <Link v-if="userPermissions.includes('edit_mytickets')" :href="route('mytickets.edit', ticket.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                         Edit
                                     </Link>
-                                    <DangerButton v-if="userPermissions.includes('delete_tickets')" @click="confirmTicketDeletion">Delete</DangerButton>
+                                    <DangerButton v-if="userPermissions.includes('delete_mytickets')" @click="confirmMyTicketDeletion">Delete</DangerButton>
                                 </div>
                             </div>
                         </h2>
@@ -84,10 +84,7 @@
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{ ticket.assigned_to_user_id === authUser.id 
-                                                ? 'You' 
-                                                : (ticket.assigned_user_name ? ticket.assigned_user_name : 'Unassigned') 
-                                            }}
+                                            {{ ticket.assigned_employee_is_current_user ? 'You' : (ticket.assigned_employee_name ? ticket.assigned_employee_name : 'Unassigned') }}
                                         </dd>
                                     </div>
                                 </dl>
@@ -104,7 +101,7 @@
                     </div>
                 </div>
 
-                <Modal :show="confirmingTicketDeletion" @close="closeModal">
+                <Modal :show="confirmingMyTicketDeletion" @close="closeModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900">
                             Are you sure you want to delete this ticket?
@@ -118,7 +115,7 @@
                                 class="ms-3"
                                 :class="{ 'opacity-25': form.processing }"
                                 :disabled="form.processing"
-                                @click="deleteTicket"
+                                @click="deleteMyTicket"
                             >
                                 Delete Ticket
                             </DangerButton>
@@ -146,28 +143,27 @@ const props = defineProps({
     }
 });
 
-const confirmingTicketDeletion = ref(false);
+const confirmingMyTicketDeletion = ref(false);
 const form = useForm({});
 
 const page = usePage();
 const authUser = page.props.auth.user;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
-const routePrefix = route().current('teamtickets.*') ? 'teamtickets' : route().current('alltickets.*') ? 'alltickets' : 'mytickets';
 
-const confirmTicketDeletion = () => {
-    confirmingTicketDeletion.value = true;
+const confirmMyTicketDeletion = () => {
+    confirmingMyTicketDeletion.value = true;
 };
 
-const deleteTicket = () => {
-    form.delete(route(`${routePrefix}.destroy`, props.ticket.id), {
+const deleteMyTicket = () => {
+    form.delete(route('mytickets.destroy', props.ticket.id), {
         onFinish: () => {
-            confirmingTicketDeletion.value = false;
+            confirmingMyTicketDeletion.value = false;
         },
     });
 };
 
 const closeModal = () => {
-    confirmingTicketDeletion.value = false;
+    confirmingMyTicketDeletion.value = false;
 };
 
 const getPriorityClass = (priority) => {

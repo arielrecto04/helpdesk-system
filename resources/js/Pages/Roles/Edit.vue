@@ -78,7 +78,7 @@ const categorizedPermissions = computed(() => {
             categories['Others'].push(permission);
         }
     });
-
+ 
     return Object.entries(categories).filter(([_, perms]) => perms.length > 0);
 });
 

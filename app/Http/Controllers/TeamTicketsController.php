@@ -6,6 +6,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Models\HelpdeskTeam;
 use App\Models\Customer;
+use App\Models\Employee;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,11 +58,13 @@ class TeamTicketsController extends Controller
 
         $tickets = $query->paginate(10)->withQueryString();
 
-        $tickets->getCollection()->transform(function ($ticket) {
+        $tickets->getCollection()->transform(function ($ticket) use ($user) {
             if ($ticket->assignedTo) {
-                $ticket->assigned_user_name = $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name;
+                $ticket->assigned_employee_name = $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name;
+                $ticket->assigned_employee_is_current_user = $ticket->assignedTo->user_id === $user->id;
             } else {
-                $ticket->assigned_user_name = null;
+                $ticket->assigned_employee_name = null;
+                $ticket->assigned_employee_is_current_user = false;
             }
             return $ticket;
         });
@@ -76,10 +79,10 @@ class TeamTicketsController extends Controller
     public function create(): Response
     {
         $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
-        $teams = HelpdeskTeam::latest()->get(['id', 'name']);
+        $teams = HelpdeskTeam::orderByDesc('id')->select('id', 'team_name')->get();
 
         return Inertia::render('TeamTickets/Create', [
-            'customers' => $customers->map(fn($c) => ['id' => $c->id, 'name' => $c->first_name . ' ' . $c->last_name]),
+            'customers' => $customers,
             'teams' => $teams,
         ]);
     }
@@ -91,7 +94,7 @@ class TeamTicketsController extends Controller
             'description' => 'nullable|string',
             'customer_id' => 'required|exists:customers,id',
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_user_id' => 'nullable|exists:users,id',
+            'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',
@@ -114,11 +117,11 @@ class TeamTicketsController extends Controller
     public function edit(Ticket $ticket): Response
     {
         $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
-        $teams = HelpdeskTeam::latest()->get(['id', 'name']);
+        $teams = HelpdeskTeam::orderByDesc('id')->select('id', 'team_name')->get();
 
         return Inertia::render('TeamTickets/Edit', [
             'ticket' => $ticket,
-            'customers' => $customers->map(fn($c) => ['id' => $c->id, 'name' => $c->first_name . ' ' . $c->last_name]),
+            'customers' => $customers,
             'teams' => $teams,
         ]);
     }
@@ -130,7 +133,7 @@ class TeamTicketsController extends Controller
             'description' => 'nullable|string',
             'customer_id' => 'required|exists:customers,id',
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_user_id' => 'nullable|exists:users,id',
+            'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',

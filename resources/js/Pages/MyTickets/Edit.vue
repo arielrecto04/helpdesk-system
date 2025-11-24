@@ -11,12 +11,12 @@ const props = defineProps({
     ticket: Object,
     customers: Array,
     teams: Array,
-    users: Array,
+    employees: Array,
     priorities: Array,
     stages: Array,
 });
 
-// Format the deadline to YYYY-MM-DD for the date input.
+
 const formattedDeadline = props.ticket.deadline ? props.ticket.deadline.split(' ')[0] : '';
 
 const form = useForm({
@@ -26,17 +26,14 @@ const form = useForm({
     priority: props.ticket.priority,
     stage: props.ticket.stage,
     team_id: props.ticket.team_id,
-    assigned_to_user_id: props.ticket.assigned_to_user_id,
+    assigned_to_employee_id: props.ticket.assigned_to_employee_id,
     deadline: props.ticket.deadline,
     deadline: formattedDeadline,
 });
 
-const routePrefix = route().current('teamtickets.*') ? 'teamtickets' : route().current('alltickets.*') ? 'alltickets' : 'mytickets';
-
 const submit = () => {
-    form.put(route(`${routePrefix}.update`, props.ticket.id), {
+    form.put(route('mytickets.update', props.ticket.id), {
         onSuccess: () => {
-            // Handle success, maybe show a notification
         },
     });
 };
@@ -102,7 +99,8 @@ const submit = () => {
 
                                     <div class="mt-4">
                                         <InputLabel for="team" value="Team" />
-                                        <select id="team" v-model="form.team_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <select id="team" v-model="form.team_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                            <option :value="null" disabled>Select a team</option>
                                             <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.team_name }}</option>
                                         </select>
                                         <InputError class="mt-2" :message="form.errors.team_id" />
@@ -110,11 +108,11 @@ const submit = () => {
 
                                     <div class="mt-4">
                                         <InputLabel for="assigned_to" value="Assigned To" />
-                                        <select id="assigned_to" v-model="form.assigned_to_user_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <select id="assigned_to" v-model="form.assigned_to_employee_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                             <option :value="null">Unassigned</option>
-                                            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.first_name }} {{ user.last_name }}</option>
+                                            <option v-for="employee in (employees || [])" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option>
                                         </select>
-                                        <InputError class="mt-2" :message="form.errors.assigned_to_user_id" />
+                                        <InputError class="mt-2" :message="form.errors.assigned_to_employee_id" />
                                     </div>
 
                                     <div class="mt-4">
@@ -126,7 +124,7 @@ const submit = () => {
                             </div>
 
                             <div class="flex items-center justify-end mt-6">
-                                <Link :href="route(`${routePrefix}.show`, ticket.id)" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                                <Link :href="route('mytickets.show', ticket.id)" class="text-sm text-gray-600 hover:text-gray-900 underline">
                                     Cancel
                                 </Link>
 

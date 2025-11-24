@@ -44,7 +44,7 @@ watch(selectedRole, (val) => {
 const submit = () => {
     if (isEmployeeAccount.value) {
         // 1. Kung galing sa Employee page, sa 'employees.storeAccount' i-submit
-        form.post(route('employees.storeAccount', { employee: props.prefill.employee_id }), {
+        form.post(route('employees.storeAccount', { employee: props.prefill?.employee_id }), {
             onError: () => form.reset('password', 'password_confirmation'),
         });
     } else {
@@ -59,10 +59,10 @@ const submit = () => {
 // --- INAYOS: Dynamic na 'Cancel' link ---
 const cancelRoute = computed(() => {
     if (isEmployeeAccount.value) {
-        return route('employees.show', { employee: props.prefill.employee_id });
+        return route('employees.show', { employee: props.prefill?.employee_id });
     }
     if (isCustomerAccount.value) {
-        return route('customers.show', { customer: props.prefill.customer_id });
+        return route('customers.show', { customer: props.prefill?.customer_id });
     }
     return route('users.index');
 });
@@ -74,7 +74,7 @@ const cancelRoute = computed(() => {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ isEmployeeAccount ? `Create Account for: ${prefill.first_name} ${prefill.last_name}` : 'Create New User' }}
+                {{ isEmployeeAccount ? `Create Account for: ${prefill?.first_name ?? ''} ${prefill?.last_name ?? ''}` : 'Create New User' }}
             </h2>
         </template>
 
