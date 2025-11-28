@@ -10,13 +10,15 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 const props = defineProps({
     customers: Array,
     teams: Array,
-    users: Array,
+    employees: Array,
     priorities: Array,
     defaultTeamId: { type: [Number, String], default: null },
     stages: Array,
+    currentEmployeeId: { type: Number, default: null },
 });
 
-const authUser = usePage().props.auth.user;
+const page = usePage();
+const authUser = page.props.auth ? page.props.auth.user : null;
 
 const form = useForm({
     customer_id: null,
@@ -24,8 +26,8 @@ const form = useForm({
     description: '',
     priority: 'Low',
     stage: 'Open',
-    team_id: props.defaultTeamId,
-    assigned_to_employee_id: authUser.employee_id ?? null,
+    team_id: (props.defaultTeamId !== null && props.defaultTeamId !== undefined) ? Number(props.defaultTeamId) : null,
+    assigned_to_employee_id: props.currentEmployeeId ?? (authUser && authUser.employee_id ? authUser.employee_id : null),
     deadline: '',
 });
 
@@ -43,9 +45,7 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Create New Ticket
-            </h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create New Ticket</h2>
         </template>
 
         <div class="py-12">
@@ -107,7 +107,7 @@ const submit = () => {
                                         <InputLabel for="assigned_to" value="Assigned To" />
                                         <select id="assigned_to" v-model="form.assigned_to_employee_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                             <option :value="null">Unassigned</option>
-                                            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.first_name }} {{ user.last_name }}</option>
+                                            <option v-for="employee in (employees || [])" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option>
                                         </select>
                                         <InputError class="mt-2" :message="form.errors.assigned_to_employee_id" />
                                     </div>
@@ -131,32 +131,4 @@ const submit = () => {
             </div>
         </div>
     </AuthenticatedLayout>
-</template>
-<script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
-
-let form = reactive({ subject: '', description: '' });
-const submit = () => console.log('create team ticket', form);
-</script>
-
-<template>
-  <Head title="Create Team Ticket" />
-  <AuthenticatedLayout>
-    <template #header>
-      <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create Team Ticket</h2>
-    </template>
-
-    <div class="py-12">
-      <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-          <div class="space-y-4">
-            <input v-model="form.subject" placeholder="Subject" class="w-full border rounded p-2" />
-            <textarea v-model="form.description" placeholder="Description" class="w-full border rounded p-2"></textarea>
-            <button @click.prevent="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Create</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </AuthenticatedLayout>
 </template>

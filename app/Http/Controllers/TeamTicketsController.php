@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Database\Eloquent\Builder;
 
 class TeamTicketsController extends Controller
 {
@@ -29,30 +28,61 @@ class TeamTicketsController extends Controller
 
         $query = Ticket::query()->with(['customer', 'team', 'assignedTo'])->latest();
 
+        $team = null;
         if ($request->filled('team')) {
             $teamId = $request->input('team');
             $team = HelpdeskTeam::findOrFail($teamId);
+            
+            // Check if user can view this team's tickets
+            $userTeamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
+            $isUserTeam = in_array($teamId, $userTeamIds);
+            
+            // can_view_other_teams_tickets - pwede makita ang tickets ng nasa ibang helpdesk teams
+            $canViewOtherTeams = $user->hasPermissionTo('can_view_other_teams_tickets');
 
-            if (!$isAdmin) {
-                $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $teamId)->exists();
-
-                $hasPermissionAccess = $user->hasPermissionTo('view_team_tickets')
-                    || $user->hasPermissionTo('view_all_tickets')
-                    || $user->hasPermissionTo('view_tickets')
-                    || $user->hasPermissionTo('can_view_other_teams_tickets')
-                    || $user->hasPermissionTo('can_view_other_locations_tickets')
-                    || $user->hasPermissionTo('can_view_other_users_tickets');
-
-                if (!$hasTeamAccess && !$hasPermissionAccess) {
-                    abort(403, 'Unauthorized. You can only view tickets from your teams.');
-                }
+            if (!$isUserTeam && !$canViewOtherTeams) {
+                abort(403, 'Unauthorized. You can only view tickets from your teams.');
             }
 
             $query->where('team_id', $teamId);
         } else {
-            if (!$isAdmin) {
-                $teamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
+            // Default: show only tickets from user's teams
+            $teamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
+            
+            // can_view_other_teams_tickets - pwede makita ang tickets ng nasa ibang helpdesk teams
+            if ($user->hasPermissionTo('can_view_other_teams_tickets')) {
+                // Show all teams' tickets
+                // No filter needed
+            } else {
                 $query->whereIn('team_id', $teamIds);
+            }
+        }
+
+        // Get current user's employee record and company
+        $currentEmployee = Employee::where('user_id', $user->id)->first();
+        
+        // can_view_other_locations_tickets - pwede makita ang mga ticket na naka assign sa user na parehas ng address ng user
+        if (!$user->hasPermissionTo('can_view_other_locations_tickets')) {
+            if ($currentEmployee && $currentEmployee->company_id) {
+                // Filter to only show tickets assigned to employees from the same company/location
+                $query->where(function ($q) use ($currentEmployee, $user) {
+                    $q->whereHas('assignedTo', function ($empQuery) use ($currentEmployee) {
+                        $empQuery->where('company_id', $currentEmployee->company_id);
+                    })
+                    // Also include unassigned tickets
+                    ->orWhereNull('assigned_to_employee_id');
+                });
+            }
+        }
+
+        // can_view_other_users_tickets - pwede makita ang ticket ng iba
+        if (!$user->hasPermissionTo('can_view_other_users_tickets')) {
+            if ($currentEmployee) {
+                // Only show tickets assigned to current user or unassigned
+                $query->where(function ($q) use ($currentEmployee) {
+                    $q->where('assigned_to_employee_id', $currentEmployee->id)
+                      ->orWhereNull('assigned_to_employee_id');
+                });
             }
         }
 
@@ -72,7 +102,8 @@ class TeamTicketsController extends Controller
         return Inertia::render('TeamTickets', [
             'tickets' => $tickets,
             'isAdmin' => $isAdmin,
-            'filters' => $request->only(['search', 'status', 'priority', 'team'])
+            'filters' => $request->only(['search', 'status', 'priority', 'team']),
+            'team' => $team,
         ]);
     }
 
@@ -81,9 +112,24 @@ class TeamTicketsController extends Controller
         $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
         $teams = HelpdeskTeam::orderByDesc('id')->select('id', 'team_name')->get();
 
+        $user = Auth::user();
+        $employeeId = null;
+        if ($user) {
+            $employeeId = Employee::where('user_id', $user->id)->value('id');
+
+            if (! $employeeId && $user->email) {
+                $employeeId = Employee::where('email', $user->email)->value('id');
+            }
+        }
+
         return Inertia::render('TeamTickets/Create', [
             'customers' => $customers,
             'teams' => $teams,
+            'employees' => Employee::all(['id', 'first_name', 'last_name']),
+            'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
+            'stages' => ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'],
+            'defaultTeamId' => request()->query('team_id'),
+            'currentEmployeeId' => $employeeId ? (int)$employeeId : null,
         ]);
     }
 
@@ -119,10 +165,18 @@ class TeamTicketsController extends Controller
         $customers = Customer::latest()->get(['id', 'first_name', 'last_name']);
         $teams = HelpdeskTeam::orderByDesc('id')->select('id', 'team_name')->get();
 
+        $employees = Employee::all(['id', 'first_name', 'last_name']);
+
+        $priorities = ['Low', 'Medium', 'High', 'Urgent'];
+        $stages = ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'];
+
         return Inertia::render('TeamTickets/Edit', [
             'ticket' => $ticket,
             'customers' => $customers,
             'teams' => $teams,
+            'employees' => $employees,
+            'priorities' => $priorities,
+            'stages' => $stages,
         ]);
     }
 

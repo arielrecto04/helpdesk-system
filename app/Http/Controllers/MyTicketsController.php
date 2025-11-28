@@ -130,23 +130,6 @@ class MyTicketsController extends Controller
     public function show(Ticket $ticket): Response
     {
         /** @var User $user */
-        $user = Auth::user();
-        $employeeId = Employee::where('user_id', $user->id)->value('id');
-        $hasTeamAccess = $user->teams()
-            ->where('helpdesk_teams.id', $ticket->team_id)
-            ->exists();
-
-
-        $canView = $hasTeamAccess
-            || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
-            || $user->hasPermissionTo('can_view_other_teams_tickets')
-            || $user->hasPermissionTo('can_view_other_locations_tickets')
-            || $user->hasPermissionTo('can_view_other_users_tickets');
-
-        if (!$canView) {
-            abort(403, 'Unauthorized. You do not have permission to view this ticket.');
-        }
-
         $ticket->load(['customer', 'assignedTo', 'team']);
         $ticket->assigned_employee_name = $ticket->assignedTo ? $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name : null;
 

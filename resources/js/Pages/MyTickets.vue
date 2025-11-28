@@ -1,32 +1,23 @@
 <script setup>
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
-
-
 
 const page = usePage();
 const authUser = page.props.auth.user;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 const props = defineProps({
-
     tickets: {
         type: Object,
         required: true,
     },
-
     pageTitle: {
         type: String,
         required: true,
     }
-
 });
-
-
 const getPriorityClass = (priority) => {
-
     return {
         'bg-red-100 text-red-800': priority === 'Urgent',
         'bg-orange-100 text-orange-800': priority === 'High',
@@ -35,7 +26,6 @@ const getPriorityClass = (priority) => {
     };
 };
 const getStageClass = (stage) => {
-
     return {
         'bg-green-100 text-green-800': ['Resolved', 'Closed'].includes(stage),
         'bg-blue-100 text-blue-800': stage === 'Open',
@@ -44,11 +34,9 @@ const getStageClass = (stage) => {
     };
 
 };
-
 const viewMyTicket = (ticketId) => {
     router.visit(route('mytickets.show', ticketId));
 };
-
 </script>
 
 <template>

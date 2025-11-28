@@ -6,7 +6,6 @@ use App\Http\Controllers\CustomerDashboardController;
 use App\Http\Controllers\HelpdeskTeamsController;
 use App\Http\Controllers\MyTicketsController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TeamTicketsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\EmployeeController;

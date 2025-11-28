@@ -1,8 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     auth: {
@@ -43,14 +41,9 @@ const props = defineProps({
     }
 });
 
-const getStageClass = (stage) => {
-    return {
-        'px-2 py-1 text-xs font-medium rounded-full': true,
-        'bg-green-100 text-green-800': stage === 'Resolved',
-        'bg-blue-100 text-blue-800': stage === 'Open',
-        'bg-yellow-100 text-yellow-800': stage === 'In Progress'
-    };
-};
+const page = usePage();
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+
 </script>
 
 <template>
@@ -175,8 +168,7 @@ const getStageClass = (stage) => {
                             </div>
                         </div>
 
-                        <!-- View Tickets Button (hidden if user lacks access) -->
-                        <div v-if="team.canView">
+                        <div v-if="userPermissions && userPermissions.includes('view_teamtickets_menu')">
                             <Link 
                                 :href="route('teamtickets.index', { team: team.id })" 
                                 class="w-full bg-blue-500 text-white rounded-md py-2 hover:bg-blue-600 transition-colors text-center block"
