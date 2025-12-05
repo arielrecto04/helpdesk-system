@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class, // Run this before UserSeeder so roles exist
             UserSeeder::class, 
             EmployeeSeeder::class,
+            EmployeeHelpdeskTeamSeeder::class,
             CustomerSeeder::class,
             TagSeeder::class,
             TicketSeeder::class,

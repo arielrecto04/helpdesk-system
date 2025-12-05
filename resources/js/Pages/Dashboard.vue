@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     auth: {
@@ -22,12 +23,13 @@ const props = defineProps({
     userStats: {
         type: Object,
         default: () => ({
-            highPriorityTickets: 0,
-            urgentTickets: 0,
-            failedTickets: 0,
-            closedTickets: 0,
-            successRate: 0,
-            averageRating: 0,
+            AllhighPriorityTickets: 0,
+            AllurgentTickets: 0,
+            AllfailedTickets: 0,
+            AllClosedTickets: 0,
+            TodayclosedTickets: 0,
+            TodaysuccessRate: 0,
+            TodayaverageRating: 0,
             weeklyAvg: {
             closed: 0,
             success: 0,
@@ -35,14 +37,51 @@ const props = defineProps({
             }
         })
     },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    }
+    globalStats: {
+        type: Object,
+        default: () => ({
+            AllhighPriorityTickets: 0,
+            AllurgentTickets: 0,
+            AllfailedTickets: 0,
+        }),
+    },
+
 });
 
 const page = usePage();
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user : null;
+
+const visibleTeams = computed(() => {
+    const allTeams = props.teams || [];
+    
+    // If user is an admin or has the global permission, show all teams
+    if ((userPermissions && userPermissions.includes('can_view_other_teams_tickets'))) {
+        return allTeams;
+    }
+
+    // Otherwise show only teams the user belongs to
+    let userTeamIds = [];
+
+    if (authUser && Array.isArray(authUser.teams)) {
+        userTeamIds = authUser.teams.map(t => t.id);
+    }
+
+    if (!userTeamIds.length) {
+        return [];
+    }
+
+    return allTeams.filter(team => userTeamIds.includes(team.id));
+});
+
+// Determine if the current user can view all tickets
+const hasPermission = computed(() => {
+    const perms = userPermissions || [];
+    return (
+        perms.includes('view_alltickets_menu') ||
+        perms.includes('show_alltickets')
+    );
+});
 
 </script>
 
@@ -54,35 +93,58 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- 2. Personalized Statistics -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- My Tickets Card -->
+                    <!-- All Tickets count -->
                     <div class="bg-white rounded-lg shadow p-6" role="region" aria-labelledby="tickets-heading">
                         <div class="flex justify-between items-center mb-4">
                             <h3 id="tickets-heading" class="text-lg font-semibold">
-                                {{ isAdmin ? 'All System Tickets' : 'My Assigned Tickets' }}
+                                {{ hasPermission ? 'All System Tickets' : 'My Assigned Tickets' }}
+                                <span class="text-sm text-gray-500 font-normal ml-2">
+                                    {{ hasPermission ? '(Includes all tickets across teams)' : '(Tickets assigned to you)' }}
+                                </span>
                             </h3>
-                            <span v-if="isAdmin" class="text-sm text-blue-600 bg-blue-100 px-2 py-1 rounded">
-                                Viewing as Admin
-                            </span>
+
                         </div>
                         <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-sm text-gray-500" id="high-priority-label">High Priority</p>
-                                <p class="text-2xl font-bold" aria-labelledby="high-priority-label">
-                                    {{ userStats.highPriorityTickets }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500" id="urgent-label">Urgent</p>
-                                <p class="text-2xl font-bold" aria-labelledby="urgent-label">
-                                    {{ userStats.urgentTickets }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500" id="failed-label">Failed</p>
-                                <p class="text-2xl font-bold" aria-labelledby="failed-label">
-                                    {{ userStats.failedTickets }}
-                                </p>
-                            </div>
+                            <template v-if="hasPermission">
+                                <div>
+                                    <p class="text-sm text-gray-500" id="high-priority-label">High Priority</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="high-priority-label">
+                                        {{ globalStats.AllhighPriorityTickets }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="urgent-label">Urgent</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="urgent-label">
+                                        {{ globalStats.AllurgentTickets }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="failed-label">Failed</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="failed-label">
+                                        {{ globalStats.AllfailedTickets }}
+                                    </p>
+                                </div>
+                            </template>
+                            <template v-else>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="high-priority-label">High Priority</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="high-priority-label">
+                                        {{ userStats.AllhighPriorityTickets }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="urgent-label">Urgent</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="urgent-label">
+                                        {{ userStats.AllurgentTickets }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="failed-label">Failed</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="failed-label">
+                                        {{ userStats.AllfailedTickets }}
+                                    </p>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -92,15 +154,15 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <p class="text-sm text-gray-500">Closed Tickets</p>
-                                <p class="text-2xl font-bold">{{ userStats.closedTickets }}</p>
+                                <p class="text-2xl font-bold">{{ userStats.TodayclosedTickets }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Success Rate</p>
-                                <p class="text-2xl font-bold">{{ userStats.successRate }}%</p>
+                                <p class="text-2xl font-bold">{{ userStats.TodaysuccessRate }}%</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Average Rating</p>
-                                <p class="text-2xl font-bold">{{ userStats.averageRating }}</p>
+                                <p class="text-2xl font-bold">{{ userStats.TodayaverageRating }}</p>
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t">
@@ -123,10 +185,10 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                     </div>
                 </div>
 
-                <!-- 3. Team/Department Queues All Summary -->
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div v-for="team in teams" 
-                         :key="team.name" 
+                    <div v-for="team in visibleTeams" 
+                         :key="team.id" 
                          class="bg-white rounded-lg shadow p-6" 
                          role="region" 
                          :aria-label="`${team.name} Team Statistics`">
@@ -185,7 +247,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                 </div>
 
                 <!-- 4. Recent Activity (preserved from original) -->
-                <div class="mt-6 bg-white shadow-sm rounded-lg">
+                <!-- <div class="mt-6 bg-white shadow-sm rounded-lg">
                     <div class="px-6 py-4 border-b border-gray-200">
                         <h3 class="text-lg font-medium text-gray-900">Recent Activity</h3>
                     </div>
@@ -208,7 +270,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </AuthenticatedLayout>

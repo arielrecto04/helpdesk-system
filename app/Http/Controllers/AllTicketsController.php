@@ -74,7 +74,7 @@ class AllTicketsController extends Controller
             'teams' => HelpdeskTeam::all(),
             'employees' => Employee::all(['id', 'first_name', 'last_name']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
-            'stages' => ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'],
+            'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
             'defaultTeamId' => $request->query('team_id'),
             
             'currentEmployeeId' => $employeeId ? (int)$employeeId : null,
@@ -94,7 +94,7 @@ class AllTicketsController extends Controller
             'subject' => 'required|string|max:255',
             'description' => 'required|string',
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
-            'stage' => ['required', Rule::in(['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'])],
+            'stage' => ['required', Rule::in(['Open', 'In Progress', 'Resolved', 'Closed'])],
             'team_id' => 'required|exists:helpdesk_teams,id',
             'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',
@@ -147,7 +147,7 @@ class AllTicketsController extends Controller
             'teams' => HelpdeskTeam::all(),
             'employees' => Employee::all(['id', 'first_name', 'last_name', 'user_id']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
-            'stages' => ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'],
+            'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
         ]);
     }
 
@@ -178,7 +178,7 @@ class AllTicketsController extends Controller
             'subject' => 'required|string|max:255',
             'description' => 'required|string',
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
-            'stage' => ['required', Rule::in(['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'])],
+            'stage' => ['required', Rule::in(['Open', 'In Progress', 'Resolved', 'Closed'])],
             'team_id' => 'required|exists:helpdesk_teams,id',
             'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',

@@ -41,6 +41,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone Number</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teams</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Code</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hire Date</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
@@ -49,7 +50,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <tr v-if="employees.data.length === 0">
-                                        <td colspan="12" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No employees found.</td>
+                                        <td colspan="13" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No employees found.</td>
                                     </tr>
                                     <tr v-for="employee in employees.data" :key="employee.id" @click="viewEmployee(employee.id)" class="hover:bg-gray-100 cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ employee.id }}</td>
@@ -60,6 +61,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.phone_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.department_name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.position_name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ (employee.teams || []).join(', ') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.employee_code }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.hire_date }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ employee.created_at }}</td>

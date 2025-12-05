@@ -24,9 +24,14 @@ class TeamTicketsController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $isAdmin = $user->hasRole('admin');
-
         $query = Ticket::query()->with(['customer', 'team', 'assignedTo'])->latest();
+
+        // Get employee and their teams
+        $employee = Employee::where('user_id', $user->id)->with('helpdeskTeams')->first();
+        if (!$employee) {
+            $employee = Employee::where('email', $user->email)->with('helpdeskTeams')->first();
+        }
+        $userTeamIds = $employee ? $employee->helpdeskTeams->pluck('id')->toArray() : [];
 
         $team = null;
         if ($request->filled('team')) {
@@ -34,7 +39,6 @@ class TeamTicketsController extends Controller
             $team = HelpdeskTeam::findOrFail($teamId);
             
             // Check if user can view this team's tickets
-            $userTeamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
             $isUserTeam = in_array($teamId, $userTeamIds);
             
             // can_view_other_teams_tickets - pwede makita ang tickets ng nasa ibang helpdesk teams
@@ -47,14 +51,18 @@ class TeamTicketsController extends Controller
             $query->where('team_id', $teamId);
         } else {
             // Default: show only tickets from user's teams
-            $teamIds = $user->teams()->pluck('helpdesk_teams.id')->toArray();
-            
             // can_view_other_teams_tickets - pwede makita ang tickets ng nasa ibang helpdesk teams
             if ($user->hasPermissionTo('can_view_other_teams_tickets')) {
                 // Show all teams' tickets
                 // No filter needed
             } else {
-                $query->whereIn('team_id', $teamIds);
+                // Only show tickets from user's teams
+                if (!empty($userTeamIds)) {
+                    $query->whereIn('team_id', $userTeamIds);
+                } else {
+                    // No teams assigned, show nothing
+                    $query->whereNull('id');
+                }
             }
         }
 
@@ -101,7 +109,6 @@ class TeamTicketsController extends Controller
 
         return Inertia::render('TeamTickets', [
             'tickets' => $tickets,
-            'isAdmin' => $isAdmin,
             'filters' => $request->only(['search', 'status', 'priority', 'team']),
             'team' => $team,
         ]);
@@ -127,7 +134,7 @@ class TeamTicketsController extends Controller
             'teams' => $teams,
             'employees' => Employee::all(['id', 'first_name', 'last_name']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
-            'stages' => ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'],
+            'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
             'defaultTeamId' => request()->query('team_id'),
             'currentEmployeeId' => $employeeId ? (int)$employeeId : null,
         ]);
@@ -168,7 +175,7 @@ class TeamTicketsController extends Controller
         $employees = Employee::all(['id', 'first_name', 'last_name']);
 
         $priorities = ['Low', 'Medium', 'High', 'Urgent'];
-        $stages = ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'];
+        $stages = ['Open', 'In Progress', 'Resolved', 'Closed'];
 
         return Inertia::render('TeamTickets/Edit', [
             'ticket' => $ticket,

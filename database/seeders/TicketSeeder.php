@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\Customer;
 use App\Models\HelpdeskTeam;
 use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 
 class TicketSeeder extends Seeder
 {
@@ -52,7 +53,7 @@ class TicketSeeder extends Seeder
                 'subject' => 'New software installation request',
                 'description' => 'Need Visual Studio Code installed on my workstation.',
                 'priority' => 'Low',
-                'stage' => 'Pending Customer',
+                'stage' => 'Open',
                 'deadline' => now()->addDays(5)
             ],
             [
@@ -87,7 +88,7 @@ class TicketSeeder extends Seeder
                 'subject' => 'Mobile app login issue',
                 'description' => 'Customers report they cannot login to the mobile app.',
                 'priority' => 'Urgent',
-                'stage' => 'Pending Customer',
+                'stage' => 'Open',
                 'deadline' => now()->addDay()
             ],
             [
@@ -129,7 +130,7 @@ class TicketSeeder extends Seeder
                 'subject' => 'Access rights for shared drive',
                 'description' => 'Request access to Marketing shared drive for new hire.',
                 'priority' => 'High',
-                'stage' => 'Pending Customer',
+                'stage' => 'Open',
                 'deadline' => now()->addDays(1)
             ],
             [
@@ -171,7 +172,7 @@ class TicketSeeder extends Seeder
                 'subject' => 'Antivirus false positive on shared folder',
                 'description' => 'Antivirus quarantined several harmless files.',
                 'priority' => 'High',
-                'stage' => 'Pending Customer',
+                'stage' => 'Open',
                 'deadline' => now()->addDays(2)
             ],
             [
@@ -197,11 +198,26 @@ class TicketSeeder extends Seeder
             ]
         ];
 
-        foreach ($tickets as $ticketData) { 
+        $hasClosedAt = Schema::hasColumn('tickets', 'closed_at');
+
+        foreach ($tickets as $ticketData) {
             $ticketData['customer_id'] = $customers->random()->id;
             $ticketData['team_id'] = $teams->random()->id;
-            $ticketData['assigned_to_employee_id'] = $agents->random()->id;
+
+            // If ticket is Resolved/Closed, ensure it has an assignee and closed_at (if column exists)
+            if (in_array($ticketData['stage'], ['Resolved', 'Closed'])) {
+                $ticketData['assigned_to_employee_id'] = $agents->random()->id;
+                if ($hasClosedAt) {
+                    // closed_at sometime in the past 0-7 days
+                    $ticketData['closed_at'] = now()->subDays(rand(0, 7));
+                }
+            } else {
+                // For open/in-progress tickets, randomly leave some unassigned
+                $ticketData['assigned_to_employee_id'] = (rand(0, 4) === 0) ? null : $agents->random()->id;
+            }
+
             $newTicket = Ticket::create($ticketData);
+
             $randomTagIds = $tagIds->random(rand(1, min(3, $tagIds->count())));
             $newTicket->tags()->attach($randomTagIds);
         }

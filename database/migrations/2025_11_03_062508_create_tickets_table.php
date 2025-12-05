@@ -16,8 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('team_id')->nullable();
             $table->unsignedBigInteger('assigned_to_employee_id')->nullable();
             $table->enum('priority', ['Low', 'Medium', 'High', 'Urgent'])->default('Medium');
-            $table->enum('stage', ['Open', 'In Progress', 'Pending Customer', 'Resolved', 'Closed'])->default('Open');
+            $table->enum('stage', ['Open', 'In Progress', 'Resolved', 'Closed'])->default('Open');
             $table->dateTime('deadline')->nullable();
+            $table->timestamp('closed_at')->nullable();
             $table->timestamps();
 
             $table->foreign('customer_id')

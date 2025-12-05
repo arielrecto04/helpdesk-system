@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Support\Str;
+use App\Models\HelpdeskTeam;
 
 class Employee extends Model
 {
@@ -77,5 +79,13 @@ class Employee extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * The helpdesk teams assigned to this employee.
+     */
+    public function helpdeskTeams(): BelongsToMany
+    {
+        return $this->belongsToMany(HelpdeskTeam::class, 'employee_helpdesk_team', 'employee_id', 'helpdesk_team_id')->withTimestamps();
     }
 }

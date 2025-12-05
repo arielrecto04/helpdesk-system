@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ticket;
 use App\Models\CustomerRating;
 use App\Models\HelpdeskTeam;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\User;
@@ -15,13 +14,15 @@ class DashboardController extends Controller
 {
     private function calculateAverageResponseTime()
     {
-        // TODO: Implement actual calculation
-        // This should calculate the average time between ticket creation and first response
+        // TODO: Implement actual calculation based on ticket response times
         return '2.5h';
     }
 
     private function calculateUserSuccessRate($employeeId)
     {
+        if (empty($employeeId)) {
+            return 0;
+        }
         $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->count();
@@ -34,6 +35,9 @@ class DashboardController extends Controller
 
     private function calculateUserAverageRating($employeeId)
     {
+        if (empty($employeeId)) {
+            return 0;
+        }
         $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
             $query->where('assigned_to_employee_id', $employeeId);
         })->avg('rating');
@@ -43,6 +47,9 @@ class DashboardController extends Controller
 
     private function calculateWeeklyClosedAverage($employeeId)
     {
+        if (empty($employeeId)) {
+            return 0;
+        }
         $weeklyCount = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
@@ -53,6 +60,9 @@ class DashboardController extends Controller
 
     private function calculateWeeklySuccessRate($employeeId)
     {
+        if (empty($employeeId)) {
+            return 0;
+        }
         $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
@@ -67,6 +77,9 @@ class DashboardController extends Controller
 
     private function calculateWeeklyAverageRating($employeeId)
     {
+        if (empty($employeeId)) {
+            return 0;
+        }
         $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
             $query->where('assigned_to_employee_id', $employeeId);
         })
@@ -75,11 +88,11 @@ class DashboardController extends Controller
 
         return round($ratings ?? 0, 1);
     }
+
     public function index()
     {
         $user = Auth::user();
         /** @var User $user */
-        $isAdmin = $user->hasRole('admin');
 
         // Global stats
         $stats = [
@@ -91,38 +104,73 @@ class DashboardController extends Controller
             'averageResponseTime' => $this->calculateAverageResponseTime()
         ];
 
-        // User's personal stats - for admin show all tickets, for others show only their assigned tickets
+        // Additional global breakdowns used in the dashboard header
+        $globalStats = [
+            'AllhighPriorityTickets' => Ticket::where('priority', 'High')
+                ->where('stage', '!=', 'Closed')
+                ->where('stage', '!=', 'Resolved')
+                ->count(),
+            'AllurgentTickets' => Ticket::where('priority', 'Urgent')
+                ->where('stage', '!=', 'Closed')
+                ->where('stage', '!=', 'Resolved')
+                ->count(),
+            'AllfailedTickets' => Ticket::whereDate('deadline', '<', now())
+                ->where('stage', '!=', 'Resolved')
+                ->where('stage', '!=', 'Closed')
+                ->where('closed_at', null)
+                ->count()
+        ];
+
+        // Load employee record and their teams
+        $employee = Employee::where('user_id', $user->id)
+            ->with('helpdeskTeams')
+            ->first();
+        
+        if (!$employee) {
+            $employee = Employee::where('email', $user->email)
+                ->with('helpdeskTeams')
+                ->first();
+        }
+        
+        $employeeId = $employee?->id;
         $ticketsQuery = Ticket::query();
-        $employeeId = Employee::where('user_id', $user->id)->value('id');
-        if (!$isAdmin) {
-            if ($employeeId) {
-                $ticketsQuery->where('assigned_to_employee_id', $employeeId);
-            } else {
-                // No employee record -> no assigned tickets
-                $ticketsQuery->whereNull('id');
-            }
+
+        if ($employeeId) {
+            $ticketsQuery->where('assigned_to_employee_id', $employeeId);
+        } else {
+            $ticketsQuery->whereNull('id');
         }
 
         $userStats = [
-            'highPriorityTickets' => (clone $ticketsQuery)
+            'AllhighPriorityTickets' => (clone $ticketsQuery)
                 ->where('priority', 'High')
                 ->where('stage', '!=', 'Closed')
+                ->where('stage', '!=', 'Resolved')
                 ->count(),
-            'urgentTickets' => (clone $ticketsQuery)
+            'AllurgentTickets' => (clone $ticketsQuery)
                 ->where('priority', 'Urgent')
                 ->where('stage', '!=', 'Closed')
+                ->where('stage', '!=', 'Resolved')
                 ->count(),
-            'failedTickets' => (clone $ticketsQuery)
+            'AllfailedTickets' => (clone $ticketsQuery)
                 ->whereDate('deadline', '<', now())
                 ->where('stage', '!=', 'Resolved')
                 ->where('stage', '!=', 'Closed')
+                ->where('closed_at', null)
                 ->count(),
-            'closedTickets' => ($employeeId ? Ticket::where('assigned_to_employee_id', $employeeId) : Ticket::whereNull('id'))
+
+            'AllClosedTickets' => (clone $ticketsQuery)
+                ->where('stage', 'Resolved')
+                ->where('closed_at', '!=', null)
+                ->count(),
+
+
+            'TodayclosedTickets' => (clone $ticketsQuery)
                 ->where('stage', 'Resolved')
                 ->whereDate('updated_at', today())
                 ->count(),
-            'successRate' => $this->calculateUserSuccessRate($employeeId),
-            'averageRating' => $this->calculateUserAverageRating($employeeId),
+            'TodaysuccessRate' => $this->calculateUserSuccessRate($employeeId),
+            'TodayaverageRating' => $this->calculateUserAverageRating($employeeId),
             'weeklyAvg' => [
                 'closed' => $this->calculateWeeklyClosedAverage($employeeId),
                 'success' => $this->calculateWeeklySuccessRate($employeeId),
@@ -130,8 +178,7 @@ class DashboardController extends Controller
             ]
         ];
 
-        // Team statistics
-        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $isAdmin) {
+        $teams = HelpdeskTeam::all()->map(function ($team) use ($user) {
             $totalTickets = Ticket::where('team_id', $team->id)->count();
             $resolvedTickets = Ticket::where('team_id', $team->id)
                 ->where('stage', 'Resolved')
@@ -158,29 +205,25 @@ class DashboardController extends Controller
                         ->count(),
                     'urgent' => Ticket::where('team_id', $team->id)
                         ->where('priority', 'Urgent')
-                        // ->where('stage', '!=', 'Closed')
-                        // ->where('stage', '!=', 'Resolved')
                         ->count(),
                     'failed' => Ticket::where('team_id', $team->id)
                         ->whereDate('deadline', '<', now())
                         ->where('stage', '!=', 'Resolved')
-                        // ->where('stage', '!=', 'Closed')
                         ->count()
                 ]
             ];
         });
 
-        // Compute per-team access flags for the current user
-        $teams = $teams->map(function ($team) use ($user, $isAdmin) {
-            $hasTeamAccess = $isAdmin || $user->teams()->where('helpdesk_teams.id', $team['id'])->exists();
-            $hasPermissionAccess = $user->hasPermissionTo('view_team_tickets')
-                || $user->hasPermissionTo('view_all_tickets')
-                || $user->hasPermissionTo('view_tickets')
-                || $user->hasPermissionTo('can_view_other_teams_tickets')
-                || $user->hasPermissionTo('can_view_other_locations_tickets')
-                || $user->hasPermissionTo('can_view_other_users_tickets');
+        // Determine team access for current user
+        $employeeTeamIds = $employee ? $employee->helpdeskTeams->pluck('id')->toArray() : [];
 
-            $team['canView'] = $hasTeamAccess || $hasPermissionAccess;
+        $teams = $teams->map(function ($team) use ($user, $employeeTeamIds) {
+            // User can view team if they are a member OR have 'can_view_other_teams_tickets' permission
+            $isMember = in_array($team['id'], $employeeTeamIds);
+            $canViewOtherTeams = $user->hasPermissionTo('can_view_other_teams_tickets');
+
+            $team['canView'] = $isMember || $canViewOtherTeams;
+
             return $team;
         });
 
@@ -202,9 +245,11 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Prepare auth data with roles and permissions
-        $permissions = $user->roles()->with('permissions')->get()
-            ->flatMap(function ($role) { return $role->permissions->pluck('name'); })
+        // Prepare auth data with roles, permissions, and teams
+        $permissions = $user->roles()
+            ->with('permissions')
+            ->get()
+            ->flatMap(fn($role) => $role->permissions->pluck('name'))
             ->unique()
             ->values()
             ->toArray();
@@ -214,17 +259,20 @@ class DashboardController extends Controller
                 'roles' => $user->roles()->pluck('name')->toArray(),
                 'permissions' => $permissions,
                 'employee_id' => $employeeId,
+                'teams' => $employee ? $employee->helpdeskTeams->map(fn($t) => [
+                    'id' => $t->id,
+                    'team_name' => $t->team_name
+                ])->toArray() : [],
             ])
         ];
 
-        // Return the dashboard view with all required data
         return Inertia::render('Dashboard', [
             'auth' => $authData,
             'stats' => $stats,
             'userStats' => $userStats,
+            'globalStats' => $globalStats,
             'teams' => $teams,
             'recentActivities' => $recentActivities,
-            'isAdmin' => $isAdmin
         ]);
     }
 }

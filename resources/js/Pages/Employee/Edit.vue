@@ -5,36 +5,36 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-// --- INAYOS: Idinagdag ang computed at watch ---
 import { computed, watch } from 'vue';
 
-// --- INAYOS: Idinagdag ang kailangang props ---
+
 const props = defineProps({
     employee: Object,
     departments: Array,
     positions: Array,
+    teams: Array,
 });
 
-// --- INAYOS: Inayos ang form fields ---
+
 const form = useForm({
-    // Tinanggal ang _method: 'PUT'
+
     first_name: props.employee.first_name,
     middle_name: props.employee.middle_name ?? '',
     last_name: props.employee.last_name,
     email: props.employee.email,
-    phone_number: props.employee.phone_number ?? '', // Inayos
-    department_id: props.employee.department_id, // Inayos
-    position_id: props.employee.position_id,     // Inayos
-    employee_code: props.employee.employee_code ?? '', // Inayos
-    hire_date: props.employee.hire_date ?? '',         // Inayos
+    phone_number: props.employee.phone_number ?? '', 
+    department_id: props.employee.department_id,
+    position_id: props.employee.position_id, 
+    employee_code: props.employee.employee_code ?? '',
+    hire_date: props.employee.hire_date ?? '',
+    teams: props.employee.teams ?? [],
 });
 
-// --- INAYOS: Inayos ang submit ---
+
 const submit = () => {
     form.put(route('employees.update', { employee: props.employee.id }));
 };
 
-// --- INAYOS: Idinagdag ang cascading dropdown logic ---
 const filteredPositions = computed(() => {
     if (!form.department_id) {
         return [];
@@ -49,9 +49,9 @@ watch(() => form.department_id, (newDeptId) => {
         form.position_id = props.employee.position_id;
     }
 });
-// --- End ng ayos ---
 
-const fullName = computed(() => // INAYOS: Ginamit ang computed
+
+const fullName = computed(() => 
     [props.employee.first_name, props.employee.middle_name, props.employee.last_name]
         .filter(Boolean) 
         .join(' ')
@@ -173,6 +173,22 @@ const fullName = computed(() => // INAYOS: Ginamit ang computed
                                     autocomplete="off"
                                     />
                                 <InputError class="mt-2" :message="form.errors.employee_code" />
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="teams" value="Helpdesk Teams (Optional)" />
+                                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <label v-for="t in teams" :key="t.id" class="inline-flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            :value="t.id"
+                                            v-model="form.teams"
+                                            class="rounded text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                        />
+                                        <span class="text-sm text-gray-700">{{ t.team_name }}</span>
+                                    </label>
+                                </div>
+                                <InputError class="mt-2" :message="form.errors.teams" />
                             </div>
 
                             <div class="mt-4">

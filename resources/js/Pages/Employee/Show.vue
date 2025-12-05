@@ -88,6 +88,21 @@
                                         <dd class="mt-1 text-sm text-gray-900">{{ employee.employee_code }}</dd>
                                     </div>
                                     <div>
+                                        <dt class="text-sm font-medium text-gray-500">Helpdesk Teams</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            <template v-if="employee.teams && employee.teams.length">
+                                                <div class="flex flex-wrap gap-2">
+                                                    <span v-for="team in employee.teams" :key="team" class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                                        {{ team }}
+                                                    </span>
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <span class="text-sm text-gray-500">No teams assigned.</span>
+                                            </template>
+                                        </dd>
+                                    </div>
+                                    <div>
                                         <dt class="text-sm font-medium text-gray-500">Hire Date</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ employee.hire_date }}</dd>
                                     </div>

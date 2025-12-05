@@ -70,7 +70,6 @@ const getStageClass = (stage) => {
 		'bg-emerald-50 text-emerald-700 border-emerald-200': ['Resolved', 'Closed'].includes(stage),
 		'bg-blue-50 text-blue-700 border-blue-200': stage === 'Open',
 		'bg-amber-50 text-amber-700 border-amber-200': stage === 'In Progress',
-		'bg-purple-50 text-purple-700 border-purple-200': stage === 'Pending Customer',
 	};
 };
 

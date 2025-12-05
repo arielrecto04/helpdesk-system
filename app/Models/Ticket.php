@@ -18,8 +18,31 @@ class Ticket extends Model
         'assigned_to_employee_id',
         'priority',
         'stage',
-        'deadline'
+        'deadline',
+        'closed_at'
     ];
+
+    protected $casts = [
+        'deadline' => 'datetime',
+        'closed_at' => 'datetime',
+    ];
+
+    protected static function booted()
+    {
+        static::saving(function ($ticket) {
+            // If ticket is being set to a closed/resolved stage, record closed_at
+            if (in_array($ticket->stage, ['Resolved', 'Closed'])) {
+                if (empty($ticket->closed_at)) {
+                    $ticket->closed_at = now();
+                }
+            } else {
+                // If stage moved away from closed/resolved, clear closed_at
+                if ($ticket->isDirty('stage') && !empty($ticket->closed_at)) {
+                    $ticket->closed_at = null;
+                }
+            }
+        });
+    }
 
     /**
      * Get the customer that created the ticket.

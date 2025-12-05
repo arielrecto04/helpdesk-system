@@ -12,10 +12,11 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Arr; 
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB; // <-- IDAGDAG ITO
-use Illuminate\Support\Facades\Hash; // <-- IDAGDAG ITO
-use Illuminate\Validation\Rules; // <-- IDAGDAG ITO
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 use App\Models\Role;
+use App\Models\HelpdeskTeam;
 
 class EmployeeController extends Controller
 {
@@ -24,7 +25,7 @@ class EmployeeController extends Controller
      */
     public function index(): Response
     {
-        $employees = Employee::with(['department', 'position']) 
+        $employees = Employee::with(['department', 'position', 'helpdeskTeams']) 
             ->latest()
             ->paginate(10)
             ->through(fn ($employee) => [
@@ -37,6 +38,7 @@ class EmployeeController extends Controller
                 'phone_number' => $employee->phone_number,
                 'department_name' => $employee->department?->department_name, 
                 'position_name' => $employee->position?->position_title,
+                'teams' => $employee->helpdeskTeams->pluck('team_name'),
                 'employee_code' => $employee->employee_code,
                 'hire_date' => $employee->hire_date->toDateString(),
                 'created_at' => $employee->created_at->toDateTimeString(),
@@ -58,6 +60,7 @@ class EmployeeController extends Controller
         return Inertia::render('Employee/Create', [
             'departments' => Department::all(['id', 'department_name']),
             'positions' => Position::all(['id', 'position_title', 'department_id']),
+            'teams' => HelpdeskTeam::all(['id', 'team_name']),
         ]);
     }
 
@@ -77,9 +80,20 @@ class EmployeeController extends Controller
             'position_id' => 'nullable|exists:positions,id',
             'employee_code' => 'nullable|string|max:20|unique:'.Employee::class,
             'hire_date' => 'nullable|date',
+            'teams' => 'nullable|array',
+            'teams.*' => 'exists:helpdesk_teams,id',
         ]);
 
-        Employee::create($validated); 
+        // Extract teams before creating employee (not a fillable attribute)
+        $teams = $validated['teams'] ?? null;
+        unset($validated['teams']);
+
+        $employee = Employee::create($validated);
+
+        if (!empty($teams)) {
+            $employee->helpdeskTeams()->sync($teams);
+        }
+
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
@@ -89,7 +103,7 @@ class EmployeeController extends Controller
      */
     public function show(Employee $employee): Response
     {
-        $employee->load(['department', 'position']);
+        $employee->load(['department', 'position', 'helpdeskTeams']);
 
         $hasAccount = User::where('email', $employee->email)->exists();
 
@@ -104,6 +118,7 @@ class EmployeeController extends Controller
                 'phone_number' => $employee->phone_number,
                 'department_name' => $employee->department?->department_name, 
                 'position_name' => $employee->position?->position_title,
+                'teams' => $employee->helpdeskTeams->pluck('team_name'),
                 'employee_code' => $employee->employee_code,
                 'hire_date' => $employee->hire_date->toDateString(),
                 'created_at' => $employee->created_at->toDateTimeString(),
@@ -133,9 +148,11 @@ class EmployeeController extends Controller
                 'position_id' => $employee->position_id,
                 'employee_code' => $employee->employee_code,
                 'hire_date' => $employee->hire_date?->toDateString(),
+                'teams' => $employee->helpdeskTeams->pluck('id'),
             ],
             'departments' => Department::all(['id', 'department_name']),
             'positions' => Position::all(['id', 'position_title', 'department_id']), 
+            'teams' => HelpdeskTeam::all(['id', 'team_name']),
         ]);
     }
 
@@ -167,8 +184,18 @@ class EmployeeController extends Controller
                 Rule::unique('employees')->ignore($employee->id),
             ],
             'hire_date' => 'nullable|date',
+            'teams' => 'nullable|array',
+            'teams.*' => 'exists:helpdesk_teams,id',
         ]);
+        // Handle teams separately from fillable attributes
+        $teams = $validated['teams'] ?? null;
+        unset($validated['teams']);
+
         $employee->update($validated);
+
+        if (!is_null($teams)) {
+            $employee->helpdeskTeams()->sync($teams);
+        }
         return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
     }
 

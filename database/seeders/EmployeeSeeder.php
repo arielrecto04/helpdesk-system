@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Employee;
 use App\Models\Department;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class EmployeeSeeder extends Seeder
@@ -24,37 +25,38 @@ class EmployeeSeeder extends Seeder
 
         $employeesData = [
             [
-                'first_name' => 'John',
-                'middle_name' => 'Robert',
-                'last_name' => 'Smith',
-                'email' => 'john.smith@company.com',
+                'first_name' => 'Support',
+                'middle_name' => 'Agent',
+                'last_name' => 'Agent 1',
+                'email' => 'agent1@helpdesk.com',
                 'phone_number' => '123-456-7890'
             ],
             [
-                'first_name' => 'Maria',
-                'middle_name' => 'Roberta',
-                'last_name' => 'Garcia',
-                'email' => 'maria.garcia@company.com',
+                'first_name' => 'Support',
+                'middle_name' => 'Agent',
+                'last_name' => 'Agent 2',
+                'email' => 'agent2@helpdesk.com',
                 'phone_number' => '123-456-7891'
             ],
             [
-                'first_name' => 'David',
-                'middle_name' => 'James',
-                'last_name' => 'Johnson',
-                'email' => 'david.johnson@company.com',
+                'first_name' => 'Support',
+                'middle_name' => 'Agent',
+                'last_name' => 'Agent 3',
+                'email' => 'agent3@helpdesk.com',
                 'phone_number' => '123-456-7892'
             ],
             [
-                'first_name' => 'Sarah',
-                'last_name' => 'Williams',
-                'email' => 'sarah.williams@company.com',
+                'first_name' => 'Support',
+                'middle_name' => 'Agent',
+                'last_name' => 'Agent 4',
+                'email' => 'agent4@helpdesk.com',
                 'phone_number' => '123-456-7893'
             ],
             [
-                'first_name' => 'Michael',
-                'middle_name' => 'Thomas',
-                'last_name' => 'Brown',
-                'email' => 'michael.brown@company.com',
+                'first_name' => 'Support',
+                'middle_name' => 'Agent',
+                'last_name' => 'Agent 5',
+                'email' => 'agent5@helpdesk.com',
                 'phone_number' => '123-456-7894'
             ]
         ];
@@ -92,6 +94,17 @@ class EmployeeSeeder extends Seeder
                     'employee_code' => 'EMP-' . str_pad($maxId + 1, 4, '0', STR_PAD_LEFT),
                     'company_id' => $companyIds->random()
                 ]);
+            }
+        }
+
+        $agentUsers = User::whereHas('roles', function($query) {
+            $query->where('name', 'agent');
+        })->get();
+
+        foreach ($agentUsers as $user) {
+            $employee = Employee::where('email', $user->email)->first();
+            if ($employee) {
+                $employee->update(['user_id' => $user->id]);
             }
         }
     }

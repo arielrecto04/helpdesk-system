@@ -10,6 +10,7 @@ import { computed, watch } from 'vue';
 const props = defineProps({
     departments: Array,
     positions: Array,
+    teams: Array,
 });
 
 const form = useForm({
@@ -22,6 +23,7 @@ const form = useForm({
     position_id: '',
     employee_code: '',
     hire_date: '',
+    teams: [],
 });
 
 const filteredPositions = computed(() => {
@@ -159,6 +161,22 @@ const submit = () => {
                                     autocomplete="off"
                                 />
                                 <InputError class="mt-2" :message="form.errors.employee_code" />
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="teams" value="Helpdesk Teams (Optional)" />
+                                <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <label v-for="t in teams" :key="t.id" class="inline-flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            :value="t.id"
+                                            v-model="form.teams"
+                                            class="rounded text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                                        />
+                                        <span class="text-sm text-gray-700">{{ t.team_name }}</span>
+                                    </label>
+                                </div>
+                                <InputError class="mt-2" :message="form.errors.teams" />
                             </div>
 
                             <div class="mt-4">
