@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Company;
 use App\Models\Department; 
 use App\Models\Position;
 use Illuminate\Http\Request;
@@ -29,6 +30,8 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
+                'company_id' => $customer->company_id ?? null,
+                'company_name' => $customer->company?->name ?? null,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
             ]);
@@ -44,7 +47,11 @@ class CustomersController extends Controller
     public function create(): Response
     {
 
-        return Inertia::render('Customer/Create');
+        $companies = Company::select('id', 'name')->get();
+
+        return Inertia::render('Customer/Create', [
+            'companies' => $companies,
+        ]);
     }
 
     /**
@@ -59,9 +66,10 @@ class CustomersController extends Controller
             'last_name' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
             'email' => 'required|string|email|max:255|unique:'.Customer::class,
+            'company_id' => 'nullable|exists:companies,id',
         ]);
 
-        Customer::create($validated); 
+        Customer::create($validated);
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
@@ -83,6 +91,8 @@ class CustomersController extends Controller
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
                 'has_account' => $hasAccount,
+                'company_id' => $customer->company_id ?? null,
+                'company_name' => $customer->company?->name ?? null,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
             ]
@@ -96,6 +106,8 @@ class CustomersController extends Controller
     public function edit(Customer $customer): Response
     {
 
+        $companies = Company::select('id', 'name')->get();
+
         return Inertia::render('Customer/Edit', [
             'customer' => [
                 'id' => $customer->id,
@@ -104,7 +116,10 @@ class CustomersController extends Controller
                 'last_name' => $customer->last_name,
                 'email' => $customer->email,
                 'phone_number' => $customer->phone_number,
+                'company_id' => $customer->company_id ?? null,
+                'company_name' => $customer->company?->name ?? null,
             ],
+            'companies' => $companies,
         ]);
     }
 
@@ -127,6 +142,7 @@ class CustomersController extends Controller
                 'max:255',
                 Rule::unique('customers')->ignore($customer->id),
             ],
+            'company_id' => 'nullable|exists:companies,id',
         ]);
 
         $customer->update($validated);

@@ -56,6 +56,10 @@
                                         <dd class="mt-1 text-sm text-gray-900">{{ customer.phone_number }}</dd>
                                     </div>
                                     <div>
+                                        <dt class="text-sm font-medium text-gray-500">Company</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">{{ customer.company_name ?? 'N/A' }}</dd>
+                                    </div>
+                                    <div>
                                         <dt class="text-sm font-medium text-gray-500">Has Account?</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
                                             <span v-if="customer.has_account" class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">

@@ -121,9 +121,9 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'can_view_other_teams_tickets', 'description' => 'Can view tickets for other teams'],
             ['name' => 'can_view_other_users_tickets', 'description' => 'Can view tickets for other users'],
 
-            ['name' => 'send_ticket', 'description' => 'Can send/create a public ticket'],
-            ['name' => 'edit_sent_ticket', 'description' => 'Can edit tickets they sent'],
-            ['name' => 'delete_sent_ticket', 'description' => 'Can delete tickets they sent'],
+            ['name' => 'send_ticket_on_customer_dashboard', 'description' => 'Can send/create a public ticket'],
+            ['name' => 'edit_sent_ticket_on_customer_dashboard', 'description' => 'Can edit tickets they sent'],
+            ['name' => 'delete_sent_ticket_on_customer_dashboard', 'description' => 'Can delete tickets they sent'],
         ];
 
         // Create all permissions (idempotent)
@@ -213,7 +213,7 @@ class RolePermissionSeeder extends Seeder
 
         // Customer Role (public end users of the system)
         $customerPermissions = [
-            'view_customer_dashboard','send_ticket', 'edit_sent_ticket','delete_sent_ticket'
+            'view_customer_dashboard','send_ticket_on_customer_dashboard', 'edit_sent_ticket_on_customer_dashboard','delete_sent_ticket_on_customer_dashboard'
         ];
 
         // Try to find existing role case-insensitively (to avoid duplicate 'Customer' vs 'customer')

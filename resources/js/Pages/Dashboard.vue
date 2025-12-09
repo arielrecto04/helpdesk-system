@@ -58,7 +58,6 @@ const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user 
 const visibleTeams = computed(() => {
     const allTeams = props.teams || [];
     
-    // If user is an admin or has the global permission, show all teams
     if ((userPermissions && userPermissions.includes('can_view_other_teams_tickets'))) {
         return allTeams;
     }
@@ -224,7 +223,10 @@ const hasPermission = computed(() => {
                          class="bg-white rounded-lg shadow p-6" 
                          role="region" 
                          :aria-label="`${team.name} Team Statistics`">
-                        <h3 class="text-lg font-semibold mb-4">{{ team.name }}</h3>
+                        <h3 class="text-lg font-semibold mb-4">
+                            {{ team.name }}
+                            <span v-if="team.ticketCount !== undefined" class="ml-2 text-sm text-gray-500">({{ team.ticketCount }} tickets)</span>
+                        </h3>
                         
                         <!-- High-level Stats -->
                         <div class="grid grid-cols-3 gap-4 mb-6">

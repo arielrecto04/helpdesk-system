@@ -37,6 +37,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
@@ -45,7 +46,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     <!-- Check if users.data array is empty -->
                                     <tr v-if="customers.data.length === 0">
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No customers found.</td>
+                                        <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No customers found.</td>
                                     </tr>
                                     <!-- Loop over users.data -->
                                     <tr v-for="customer in customers.data" :key="customer.id" @click="viewCustomer(customer.id)" class="hover:bg-gray-100 cursor-pointer">
@@ -53,6 +54,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ customer.id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ customer.name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.email }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.company_name ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.phone_number }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.created_at }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ customer.updated_at }}</td>

@@ -6,12 +6,20 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+const props = defineProps({
+    companies: {
+        type: Array,
+        default: () => []
+    }
+});
+
 const form = useForm({
     first_name: '',
     middle_name: '',
     last_name: '',
     email: '',
     phone_number: '',
+    company_id: null,
 });
 
 const submit = () => {
@@ -97,6 +105,15 @@ const submit = () => {
                                     autocomplete="tel"
                                     />
                                 <InputError class="mt-2" :message="form.errors.phone_number" />
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="company_id" value="Company (Optional)" />
+                                <select id="company_id" v-model="form.company_id" class="mt-1 block w-full border-gray-300 rounded-md">
+                                    <option :value="null">Select company</option>
+                                    <option v-for="c in props.companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.company_id" />
                             </div>
 
                             <div class="flex items-center justify-end mt-6">

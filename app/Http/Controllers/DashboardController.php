@@ -94,11 +94,14 @@ class DashboardController extends Controller
         $user = Auth::user();
         /** @var User $user */
 
-        // Global stats
+        // Base query respecting user visibility permissions
+        $visibleTickets = Ticket::query()->visibleTo($user);
+
+        // Global stats (respecting permissions)
         $stats = [
-            'totalTickets' => Ticket::count(),
-            'openTickets' => Ticket::where('stage', 'Open')->count(),
-            'resolvedToday' => Ticket::where('stage', 'Resolved')
+            'totalTickets' => (clone $visibleTickets)->count(),
+            'openTickets' => (clone $visibleTickets)->where('stage', 'Open')->count(),
+            'resolvedToday' => (clone $visibleTickets)->where('stage', 'Resolved')
                 ->whereDate('updated_at', today())
                 ->count(),
             'averageResponseTime' => $this->calculateAverageResponseTime()
@@ -106,15 +109,18 @@ class DashboardController extends Controller
 
         // Additional global breakdowns used in the dashboard header
         $globalStats = [
-            'AllhighPriorityTickets' => Ticket::where('priority', 'High')
+            'AllhighPriorityTickets' => (clone $visibleTickets)
+                ->where('priority', 'High')
                 ->where('stage', '!=', 'Closed')
                 ->where('stage', '!=', 'Resolved')
                 ->count(),
-            'AllurgentTickets' => Ticket::where('priority', 'Urgent')
+            'AllurgentTickets' => (clone $visibleTickets)
+                ->where('priority', 'Urgent')
                 ->where('stage', '!=', 'Closed')
                 ->where('stage', '!=', 'Resolved')
                 ->count(),
-            'AllfailedTickets' => Ticket::whereDate('deadline', '<', now())
+            'AllfailedTickets' => (clone $visibleTickets)
+                ->whereDate('deadline', '<', now())
                 ->where('stage', '!=', 'Resolved')
                 ->where('stage', '!=', 'Closed')
                 ->where('closed_at', null)
@@ -186,9 +192,11 @@ class DashboardController extends Controller
             ]
         ];
 
-        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $employeeId) {
-            $totalTickets = Ticket::where('team_id', $team->id)->count();
-            $resolvedTickets = Ticket::where('team_id', $team->id)
+        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $employeeId, $visibleTickets) {
+            $teamVisible = (clone $visibleTickets)->where('team_id', $team->id);
+
+            $totalTickets = (clone $teamVisible)->count();
+            $resolvedTickets = (clone $teamVisible)
                 ->where('stage', 'Resolved')
                 ->count();
 
@@ -229,6 +237,7 @@ class DashboardController extends Controller
             return [
                 'id' => $team->id,
                 'name' => $team->team_name,
+                'ticketCount' => $totalTickets,
                 'stats' => [
                     'closed' => $resolvedTickets,
                     'success' => $totalTickets > 0 
@@ -245,16 +254,16 @@ class DashboardController extends Controller
                     'rating' => $userRating,
                 ],
                 'queue' => [
-                    'open' => Ticket::where('team_id', $team->id)
+                    'open' => (clone $teamVisible)
                         ->where('stage', 'Open')
                         ->count(),
-                    'unassigned' => Ticket::where('team_id', $team->id)
+                    'unassigned' => (clone $teamVisible)
                         ->whereNull('assigned_to_employee_id')
                         ->count(),
-                    'urgent' => Ticket::where('team_id', $team->id)
+                    'urgent' => (clone $teamVisible)
                         ->where('priority', 'Urgent')
                         ->count(),
-                    'failed' => Ticket::where('team_id', $team->id)
+                    'failed' => (clone $teamVisible)
                         ->whereDate('deadline', '<', now())
                         ->where('stage', '!=', 'Resolved')
                         ->count(),
@@ -284,7 +293,8 @@ class DashboardController extends Controller
         });
 
         // Recent activities
-        $recentActivities = Ticket::with(['customer', 'assignedTo', 'team'])
+        $recentActivities = (clone $visibleTickets)
+            ->with(['customer', 'assignedTo', 'team'])
             ->latest()
             ->take(5)
             ->get()

@@ -27,8 +27,11 @@ class AllTicketsController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Return all tickets (no user-based filtering)
-        $query = Ticket::query()->with(['customer', 'team', 'assignedTo'])->latest();
+        // Apply user visibility filters based on permissions
+        $query = Ticket::query()
+            ->with(['customer', 'team', 'assignedTo'])
+            ->latest()
+            ->visibleTo($user);
 
         $tickets = $query->paginate(15)->withQueryString();
 

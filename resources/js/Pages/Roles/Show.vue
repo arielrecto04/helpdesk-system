@@ -120,7 +120,7 @@ const userPermissions = page.props.auth && page.props.auth.user && page.props.au
 
 const categorizedPermissions = computed(() => {
     const categories = {
-        'General': [],
+        
         'My Tickets': [],
         'All Tickets': [],
         'Team Tickets': [],
@@ -128,52 +128,70 @@ const categorizedPermissions = computed(() => {
         'Roles': [],
         'Permissions': [],
         'Customers': [],
+        'Canned Responses': [],
+        'Logs': [],
+        'Customers Rating': [],
+        'Ticket Analysis': [],
         'Employees': [],
         'Departments': [],
         'Positions': [],
         'Helpdesk Teams': [],
         'Tags': [],
         'Companies': [],
-        'Reports': [],
-        'Others': [],
+        'Can View Others': [],
+        'Customer Dashboard': [],
+        'General': [],
     };
 
     props.role.permissions.forEach(permission => {
         const raw = (permission.name || '').toLowerCase();
-        const name = raw.replace(/^(view_|show_|create_|edit_|delete_|can_)/, '');
 
-        if (name.includes('dashboard') || name.includes('profile') || raw.includes('settings')) {
+        if (raw.includes('customer_dashboard') || raw.includes('customer-dashboard') || raw.includes('customer dashboard') || raw.includes('cust_dashboard') || raw.includes('cust-dashboard')) {
+            categories['Customer Dashboard'].push(permission);
+        } else if (raw.includes('dashboard') || raw.includes('profile') || raw.includes('settings')) {
             categories['General'].push(permission);
-        } else if (name.includes('myticket')) {
+        } else if (raw.includes('mytickets')) {
             categories['My Tickets'].push(permission);
-        } else if (name.includes('allticket')) {
+        } else if (raw.includes('allticket') || raw.includes('all_ticket') || raw.includes('all_tickets')) {
             categories['All Tickets'].push(permission);
-        } else if (name.includes('teamticket')) {
-            categories['Team Tickets'].push(permission);
-        } else if (name.includes('user')) {
-            categories['Users'].push(permission);
-        } else if (name.includes('role')) {
-            categories['Roles'].push(permission);
-        } else if (name.includes('permission')) {
-            categories['Permissions'].push(permission);
-        } else if (name.includes('customer')) {
-            categories['Customers'].push(permission);
-        } else if (name.includes('employee')) {
-            categories['Employees'].push(permission);
-        } else if (name.includes('department')) {
-            categories['Departments'].push(permission);
-        } else if (name.includes('position') || name.includes('positions')) {
-            categories['Positions'].push(permission);
-        } else if (name.includes('helpdesk')) {
+        } else if (raw.includes('helpdeskteams')) {
             categories['Helpdesk Teams'].push(permission);
-        } else if (name.includes('tag')) {
+        } else if (raw.includes('teamticket') || raw.includes('team_ticket') || raw.includes('team_ticket') ) {
+            categories['Team Tickets'].push(permission);
+        } else if (raw.includes('can_view') || raw.includes('view_other') || raw.includes('view_others')) {
+            categories['Can View Others'].push(permission);
+        } else if (raw.includes('user') || raw.includes('users')) {
+            categories['Users'].push(permission);
+        } else if (raw.includes('role')) {
+            categories['Roles'].push(permission);
+        } else if (raw.includes('permission')) {
+            categories['Permissions'].push(permission);
+        } else if (raw.includes('customer_rating') || raw.includes('customerrating') || raw.includes('customer_rating')) {
+            categories['Customers Rating'].push(permission);
+        } else if (raw.includes('canned') || raw.includes('response') || raw.includes('canned_response') || raw.includes('canned-responses')) {
+            categories['Canned Responses'].push(permission);
+        } else if (raw.includes('customer_dashboard')) {
+            categories['Customer Dashboard'].push(permission);
+        } else if (raw.includes('log') || raw.includes('logs') || raw.includes('activity') || raw.includes('audit') || raw.includes('history')) {
+            categories['Logs'].push(permission);
+        } else if (raw.includes('customer') || raw.includes('customers')) {
+            categories['Customers'].push(permission);
+        } else if (raw.includes('ticket_analysis') || raw.includes('ticketanalysis')) {
+            categories['Ticket Analysis'].push(permission);
+        } else if (raw.includes('employee') || raw.includes('employees')) {
+            categories['Employees'].push(permission);
+        } else if (raw.includes('department') || raw.includes('departments')) {
+            categories['Departments'].push(permission);
+        } else if (raw.includes('position') || raw.includes('positions')) {
+            categories['Positions'].push(permission);
+        } else if (raw.includes('helpdesk')) {
+            categories['Helpdesk Teams'].push(permission);
+        } else if (raw.includes('tag')) {
             categories['Tags'].push(permission);
-        } else if (name.includes('compan') || name.includes('company')) {
+        } else if (raw.includes('company') || raw.includes('companies') || raw.includes('compan')) {
             categories['Companies'].push(permission);
-        } else if (name.includes('report') || raw.includes('ticket_analysis') || raw.includes('customer_ratings')) {
-            categories['Reports'].push(permission);
         } else {
-            categories['Others'].push(permission);
+            categories['General'].push(permission);
         }
     });
     return Object.entries(categories).filter(([_, perms]) => perms.length > 0);

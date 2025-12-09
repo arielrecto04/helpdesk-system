@@ -13,6 +13,7 @@ const props = defineProps({
     departments: Array,
     positions: Array,
     teams: Array,
+    companies: Array,
 });
 
 
@@ -23,6 +24,7 @@ const form = useForm({
     last_name: props.employee.last_name,
     email: props.employee.email,
     phone_number: props.employee.phone_number ?? '', 
+    company_id: props.employee.company_id ?? '',
     department_id: props.employee.department_id,
     position_id: props.employee.position_id, 
     employee_code: props.employee.employee_code ?? '',
@@ -131,6 +133,19 @@ const fullName = computed(() =>
                                     v-model="form.phone_number" autocomplete="tel"
                                     />
                                 <InputError class="mt-2" :message="form.errors.phone_number" />
+                            </div>
+
+                            <div class="mt-4">
+                                <InputLabel for="company_id" value="Company (Optional)" />
+                                <select
+                                    id="company_id"
+                                    class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                    v-model="form.company_id"
+                                >
+                                    <option value="">Select a Company</option>
+                                    <option v-for="c in companies" :key="c.id" :value="c.id">{{ c.name }}</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.company_id" />
                             </div>
 
                             <div class="mt-4">

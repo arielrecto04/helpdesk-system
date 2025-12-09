@@ -5,7 +5,6 @@ import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import Pagination from '@/Components/Pagination.vue';
 
 const page = usePage();
-const authUser = page.props.auth.user;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 const props = defineProps({

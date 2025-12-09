@@ -6,11 +6,11 @@ use App\Models\User;
 use App\Models\Employee;
 use App\Models\Department; 
 use App\Models\Position;
+use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Arr; 
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -25,7 +25,7 @@ class EmployeeController extends Controller
      */
     public function index(): Response
     {
-        $employees = Employee::with(['department', 'position', 'helpdeskTeams']) 
+        $employees = Employee::with(['department', 'position', 'helpdeskTeams', 'company']) 
             ->latest()
             ->paginate(10)
             ->through(fn ($employee) => [
@@ -35,6 +35,7 @@ class EmployeeController extends Controller
                 'middle_name' => $employee->middle_name,
                 'last_name' => $employee->last_name,
                 'email' => $employee->email,
+                'company_name' => $employee->company?->name,
                 'phone_number' => $employee->phone_number,
                 'department_name' => $employee->department?->department_name, 
                 'position_name' => $employee->position?->position_title,
@@ -61,6 +62,7 @@ class EmployeeController extends Controller
             'departments' => Department::all(['id', 'department_name']),
             'positions' => Position::all(['id', 'position_title', 'department_id']),
             'teams' => HelpdeskTeam::all(['id', 'team_name']),
+            'companies' => Company::all(['id', 'name']),
         ]);
     }
 
@@ -76,6 +78,7 @@ class EmployeeController extends Controller
             'last_name' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
             'email' => 'required|string|email|max:255|unique:'.Employee::class,
+            'company_id' => 'nullable|exists:companies,id',
             'department_id' => 'nullable|exists:departments,id',
             'position_id' => 'nullable|exists:positions,id',
             'employee_code' => 'nullable|string|max:20|unique:'.Employee::class,
@@ -115,6 +118,7 @@ class EmployeeController extends Controller
                 'middle_name' => $employee->middle_name,
                 'last_name' => $employee->last_name,
                 'email' => $employee->email,
+                'company_name' => $employee->company?->name,
                 'phone_number' => $employee->phone_number,
                 'department_name' => $employee->department?->department_name, 
                 'position_name' => $employee->position?->position_title,
@@ -143,6 +147,7 @@ class EmployeeController extends Controller
                 'middle_name' => $employee->middle_name,
                 'last_name' => $employee->last_name,
                 'email' => $employee->email,
+                'company_id' => $employee->company_id,
                 'phone_number' => $employee->phone_number,
                 'department_id' => $employee->department_id,
                 'position_id' => $employee->position_id,
@@ -152,6 +157,7 @@ class EmployeeController extends Controller
             ],
             'departments' => Department::all(['id', 'department_name']),
             'positions' => Position::all(['id', 'position_title', 'department_id']), 
+            'companies' => \App\Models\Company::all(['id', 'name']),
             'teams' => HelpdeskTeam::all(['id', 'team_name']),
         ]);
     }
@@ -168,6 +174,7 @@ class EmployeeController extends Controller
             'middle_name' => 'nullable|string|max:100',
             'last_name' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
+            'company_id' => 'nullable|exists:companies,id',
             'department_id' => 'nullable|exists:departments,id',
             'position_id' => 'nullable|exists:positions,id',
             'email' => [
