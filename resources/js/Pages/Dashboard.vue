@@ -27,7 +27,10 @@ const props = defineProps({
             AllurgentTickets: 0,
             AllfailedTickets: 0,
             AllClosedTickets: 0,
+            AllAssignedTickets: 0,
             TodayclosedTickets: 0,
+            TodayAssignedTickets: 0,
+            TodayDeadlineTickets: 0,
             TodaysuccessRate: 0,
             TodayaverageRating: 0,
             weeklyAvg: {
@@ -93,64 +96,93 @@ const hasPermission = computed(() => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- 2. Personalized Statistics -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <!-- All Tickets count -->
-                    <div class="bg-white rounded-lg shadow p-6" role="region" aria-labelledby="tickets-heading">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 id="tickets-heading" class="text-lg font-semibold">
-                                {{ hasPermission ? 'All System Tickets' : 'My Assigned Tickets' }}
-                                <span class="text-sm text-gray-500 font-normal ml-2">
-                                    {{ hasPermission ? '(Includes all tickets across teams)' : '(Tickets assigned to you)' }}
-                                </span>
-                            </h3>
+                    <!-- All Tickets / My Assigned Tickets -->
+                    <div class="bg-white rounded-lg shadow p-6" role="region">
+                        <!-- When user has permission show both system-wide and personal stats -->
+                        <div v-if="hasPermission">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="all-tickets-heading" class="text-lg font-semibold flex items-baseline gap-3">
+                                    <span>All System Tickets -</span>
+                                    <span class="text-2xl font-bold text-gray-900">{{ stats.totalTickets }}</span>
+                                    <span class="text-sm text-gray-500 font-normal">(Includes all tickets across teams)</span>
+                                </h3>
+                            </div>
 
+                            <div class="grid grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <p class="text-sm text-gray-500" id="global-high-priority-label">High Priority</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="global-high-priority-label">{{ globalStats.AllhighPriorityTickets }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="global-urgent-label">Urgent</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="global-urgent-label">{{ globalStats.AllurgentTickets }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="global-failed-label">Failed</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="global-failed-label">{{ globalStats.AllfailedTickets }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="my-tickets-heading" class="text-lg font-semibold flex items-baseline gap-3">
+                                    <span>My Assigned Tickets -</span>
+                                    <span class="text-2xl font-bold text-gray-900">{{ userStats.AllAssignedTickets }}</span>
+                                    <span class="text-sm text-gray-500 font-normal">(Tickets assigned to you)</span>
+                                </h3>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500" id="user-high-priority-label">High Priority</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-high-priority-label">{{ userStats.AllhighPriorityTickets }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="user-urgent-label">Urgent</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-urgent-label">{{ userStats.AllurgentTickets }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500" id="user-failed-label">Failed</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-failed-label">{{ userStats.AllfailedTickets }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-3 gap-4">
-                            <template v-if="hasPermission">
+
+                        <!-- When user does NOT have permission, show only personal stats -->
+                        <div v-else>
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 id="my-tickets-heading-fallback" class="text-lg font-semibold flex items-baseline gap-3">
+                                    <span>My Assigned Tickets -</span>
+                                    <span class="text-2xl font-bold text-gray-900">{{ userStats.AllAssignedTickets }}</span>
+                                    <span class="text-sm text-gray-500 font-normal">(Tickets assigned to you)</span>
+                                </h3>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4">
                                 <div>
-                                    <p class="text-sm text-gray-500" id="high-priority-label">High Priority</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="high-priority-label">
-                                        {{ globalStats.AllhighPriorityTickets }}
-                                    </p>
+                                    <p class="text-sm text-gray-500" id="user-high-priority-label-fallback">High Priority</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-high-priority-label-fallback">{{ userStats.AllhighPriorityTickets }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500" id="urgent-label">Urgent</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="urgent-label">
-                                        {{ globalStats.AllurgentTickets }}
-                                    </p>
+                                    <p class="text-sm text-gray-500" id="user-urgent-label-fallback">Urgent</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-urgent-label-fallback">{{ userStats.AllurgentTickets }}</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500" id="failed-label">Failed</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="failed-label">
-                                        {{ globalStats.AllfailedTickets }}
-                                    </p>
+                                    <p class="text-sm text-gray-500" id="user-failed-label-fallback">Failed</p>
+                                    <p class="text-2xl font-bold" aria-labelledby="user-failed-label-fallback">{{ userStats.AllfailedTickets }}</p>
                                 </div>
-                            </template>
-                            <template v-else>
-                                <div>
-                                    <p class="text-sm text-gray-500" id="high-priority-label">High Priority</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="high-priority-label">
-                                        {{ userStats.AllhighPriorityTickets }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500" id="urgent-label">Urgent</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="urgent-label">
-                                        {{ userStats.AllurgentTickets }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500" id="failed-label">Failed</p>
-                                    <p class="text-2xl font-bold" aria-labelledby="failed-label">
-                                        {{ userStats.AllfailedTickets }}
-                                    </p>
-                                </div>
-                            </template>
+                            </div>
                         </div>
                     </div>
 
                     <!-- My Performance Card -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold mb-4">My Performance Today</h3>
+                        <h3 class="text-lg font-semibold mb-4 flex items-baseline gap-3">
+                            <span>My Performance Today -</span>
+                            <span class="text-2xl font-bold text-gray-900">{{ userStats.TodayAssignedTickets }}</span>
+                            <span class="text-sm text-gray-500 font-normal">(assigned today)</span>
+                            <span class="text-2xl font-bold text-gray-900">{{ userStats.TodayDeadlineTickets }}</span>
+                            <span class="text-sm text-gray-500 font-normal">(deadline today)</span>
+                        </h3>
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <p class="text-sm text-gray-500">Closed Tickets</p>
@@ -198,15 +230,15 @@ const hasPermission = computed(() => {
                         <div class="grid grid-cols-3 gap-4 mb-6">
                             <div>
                                 <p class="text-sm text-gray-500">Tickets Closed</p>
-                                <p class="text-xl font-bold">{{ team.stats.closed }}</p>
+                                <p class="text-xl font-bold">{{ hasPermission ? team.stats.closed : (team.userStats?.closed ?? team.stats.closed) }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Success Rate</p>
-                                <p class="text-xl font-bold">{{ team.stats.success }}%</p>
+                                <p class="text-xl font-bold">{{ hasPermission ? team.stats.success + '%' : ((team.userStats?.success ?? team.stats.success) + '%') }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Average Rating</p>
-                                <p class="text-xl font-bold">{{ team.stats.rating }}</p>
+                                <p class="text-xl font-bold">{{ hasPermission ? team.stats.rating : (team.userStats?.rating ?? team.stats.rating) }}</p>
                             </div>
                         </div>
 
@@ -214,19 +246,19 @@ const hasPermission = computed(() => {
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <p class="text-sm text-gray-500">Open</p>
-                                <p class="font-semibold">{{ team.queue.open }}</p>
+                                <p class="font-semibold">{{ hasPermission ? team.queue.open : (team.queue.user?.open ?? team.queue.open) }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Unassigned</p>
-                                <p class="font-semibold">{{ team.queue.unassigned }}</p>
+                                <p class="font-semibold">{{ hasPermission ? team.queue.unassigned : (team.queue.user?.unassigned ?? team.queue.unassigned) }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Urgent</p>
-                                <p class="font-semibold">{{ team.queue.urgent }}</p>
+                                <p class="font-semibold">{{ hasPermission ? team.queue.urgent : (team.queue.user?.urgent ?? team.queue.urgent) }}</p>
                             </div>
                             <div>
                                 <p class="text-sm text-gray-500">Failed</p>
-                                <p class="font-semibold">{{ team.queue.failed }}</p>
+                                <p class="font-semibold">{{ hasPermission ? team.queue.failed : (team.queue.user?.failed ?? team.queue.failed) }}</p>
                             </div>
                         </div>
 

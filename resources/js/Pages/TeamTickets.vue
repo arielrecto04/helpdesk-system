@@ -2,10 +2,10 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Pagination from '@/Components/Pagination.vue';
 
 const page = usePage();
-const authUser = page.props.auth.user;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
 
 const viewTeamTicket = (ticketId) => {
@@ -15,6 +15,20 @@ const viewTeamTicket = (ticketId) => {
 const props = defineProps({
     tickets: Object,
     team: Object,
+});
+
+const hasPermission = computed(() => {
+    const perms = userPermissions || [];
+    return perms.includes('view_alltickets_menu') || perms.includes('show_alltickets');
+});
+
+const filteredTickets = computed(() => {
+    if (!props.tickets || !Array.isArray(props.tickets.data)) return [];
+
+    // If user has global view permission, show all tickets; otherwise show only tickets assigned to the current user
+    if (hasPermission.value) return props.tickets.data;
+
+    return props.tickets.data.filter(t => t.assigned_employee_is_current_user === true);
 });
 
 const getPriorityClass = (priority) => {
@@ -68,12 +82,12 @@ const getStageClass = (stage) => {
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
-                                    <tr v-if="tickets.data.length === 0">
+                                    <tr v-if="filteredTickets.length === 0">
                                         <td colspan="9" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                                             You have no assigned tickets.
                                         </td>
                                     </tr>
-                                    <tr v-for="ticket in tickets.data" :key="ticket.id" @click="viewTeamTicket(ticket.id)" class="hover:bg-gray-100 cursor-pointer">
+                                    <tr v-for="ticket in filteredTickets" :key="ticket.id" @click="viewTeamTicket(ticket.id)" class="hover:bg-gray-100 cursor-pointer">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ ticket.id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900">{{ ticket.subject }}</div>
@@ -106,7 +120,7 @@ const getStageClass = (stage) => {
                                             {{ new Date(ticket.created_at).toLocaleDateString() }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ ticket.deadline }}</div>
+                                            {{ new Date(ticket.deadline).toLocaleString() }}
                                         </td>
                                     </tr>
                                 </tbody>

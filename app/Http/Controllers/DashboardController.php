@@ -142,6 +142,8 @@ class DashboardController extends Controller
         }
 
         $userStats = [
+            // Total tickets assigned to this user
+            'AllAssignedTickets' => (clone $ticketsQuery)->count(),
             'AllhighPriorityTickets' => (clone $ticketsQuery)
                 ->where('priority', 'High')
                 ->where('stage', '!=', 'Closed')
@@ -169,6 +171,12 @@ class DashboardController extends Controller
                 ->where('stage', 'Resolved')
                 ->whereDate('updated_at', today())
                 ->count(),
+            'TodayAssignedTickets' => (clone $ticketsQuery)
+                ->whereDate('created_at', today())
+                ->count(),
+            'TodayDeadlineTickets' => (clone $ticketsQuery)
+                ->whereDate('deadline', today())
+                ->count(),
             'TodaysuccessRate' => $this->calculateUserSuccessRate($employeeId),
             'TodayaverageRating' => $this->calculateUserAverageRating($employeeId),
             'weeklyAvg' => [
@@ -178,12 +186,46 @@ class DashboardController extends Controller
             ]
         ];
 
-        $teams = HelpdeskTeam::all()->map(function ($team) use ($user) {
+        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $employeeId) {
             $totalTickets = Ticket::where('team_id', $team->id)->count();
             $resolvedTickets = Ticket::where('team_id', $team->id)
                 ->where('stage', 'Resolved')
                 ->count();
-            
+
+            // User-specific stats for this team (tickets assigned to the current employee)
+            $userClosed = $employeeId ? Ticket::where('team_id', $team->id)
+                ->where('assigned_to_employee_id', $employeeId)
+                ->where('stage', 'Resolved')
+                ->count() : 0;
+
+            $userTotal = $employeeId ? Ticket::where('team_id', $team->id)
+                ->where('assigned_to_employee_id', $employeeId)
+                ->count() : 0;
+
+            $userSuccess = $userTotal > 0 ? round(($userClosed / $userTotal) * 100) : 0;
+
+            $userRating = $employeeId ? round(CustomerRating::whereHas('ticket', function ($query) use ($team, $employeeId) {
+                $query->where('team_id', $team->id)
+                      ->where('assigned_to_employee_id', $employeeId);
+            })->avg('rating') ?? 0, 1) : 0;
+
+            // Queue counts for the user within this team
+            $userOpen = $employeeId ? Ticket::where('team_id', $team->id)
+                ->where('assigned_to_employee_id', $employeeId)
+                ->where('stage', 'Open')
+                ->count() : 0;
+
+            $userUrgent = $employeeId ? Ticket::where('team_id', $team->id)
+                ->where('assigned_to_employee_id', $employeeId)
+                ->where('priority', 'Urgent')
+                ->count() : 0;
+
+            $userFailed = $employeeId ? Ticket::where('team_id', $team->id)
+                ->where('assigned_to_employee_id', $employeeId)
+                ->whereDate('deadline', '<', now())
+                ->where('stage', '!=', 'Resolved')
+                ->count() : 0;
+
             return [
                 'id' => $team->id,
                 'name' => $team->team_name,
@@ -195,6 +237,12 @@ class DashboardController extends Controller
                     'rating' => round(CustomerRating::whereHas('ticket', function ($query) use ($team) {
                         $query->where('team_id', $team->id);
                     })->avg('rating') ?? 0, 1)
+                ],
+                // Add user-specific stats so frontend can show per-user counts when needed
+                'userStats' => [
+                    'closed' => $userClosed,
+                    'success' => $userSuccess,
+                    'rating' => $userRating,
                 ],
                 'queue' => [
                     'open' => Ticket::where('team_id', $team->id)
@@ -209,7 +257,15 @@ class DashboardController extends Controller
                     'failed' => Ticket::where('team_id', $team->id)
                         ->whereDate('deadline', '<', now())
                         ->where('stage', '!=', 'Resolved')
-                        ->count()
+                        ->count(),
+                    // user-specific queue breakdown
+                    'user' => [
+                        'open' => $userOpen,
+                        // 'unassigned' for a specific user usually not applicable; set to 0
+                        'unassigned' => 0,
+                        'urgent' => $userUrgent,
+                        'failed' => $userFailed,
+                    ]
                 ]
             ];
         });

@@ -109,8 +109,8 @@ const viewAllTicket = (ticketId) => {
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ new Date(ticket.created_at).toLocaleDateString() }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ ticket.deadline }}</div>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ new Date(ticket.deadline).toLocaleDateString() }}
                                         </td>
                                     </tr>
                                 </tbody>
