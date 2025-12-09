@@ -13,6 +13,7 @@ use App\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\HelpdeskTeam;
 
 class User extends Authenticatable
@@ -110,11 +111,31 @@ class User extends Authenticatable
     }
 
     /**
-     * The helpdesk teams this user belongs to.
+     * Get the employee record for this user (if exists).
      */
-    public function teams(): BelongsToMany
+    public function employee(): HasOne
     {
-        return $this->belongsToMany(HelpdeskTeam::class, 'user_team', 'user_id', 'helpdesk_team_id');
+        return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * The helpdesk teams this user belongs to (via their employee record).
+     * This uses a hasManyThrough relationship via the employee's teams.
+     */
+    public function teams()
+    {
+        // If user has an employee record, get teams through employee_helpdesk_team pivot
+        return $this->hasManyThrough(
+            HelpdeskTeam::class,
+            'App\Models\Employee',
+            'user_id',      // Foreign key on employees pointing to users
+            'id',           // Local key on helpdesk_teams
+            'id',           // Local key on users
+            'id'            // Local key on employees for joining to pivot
+        )->join('employee_helpdesk_team', function($join) {
+            $join->on('helpdesk_teams.id', '=', 'employee_helpdesk_team.helpdesk_team_id')
+                 ->on('employees.id', '=', 'employee_helpdesk_team.employee_id');
+        });
     }
 
     public function hasRole($roleName)

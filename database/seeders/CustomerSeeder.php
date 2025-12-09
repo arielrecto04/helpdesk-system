@@ -6,6 +6,8 @@ use App\Models\Customer;
 use App\Models\Department;
 use App\Models\Position;
 use App\Models\Company;
+use App\Models\User;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Seeder;
 
 class CustomerSeeder extends Seeder
@@ -57,10 +59,15 @@ class CustomerSeeder extends Seeder
 
         foreach ($customers as $customer) {
             $customer['company_id'] = $companyIds->random();
-            Customer::updateOrCreate(
-                ['email' => $customer['email']],
-                $customer
-            );
+            // If the customers table has a user_id column, try to link by email
+            if (Schema::hasColumn('customers', 'user_id')) {
+                $user = User::where('email', $customer['email'])->first();
+                $customer['user_id'] = $user ? $user->id : null;
+            }
+
+            Customer::updateOrCreate([
+                'email' => $customer['email'],
+            ], $customer);
         }
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\User;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -33,7 +34,23 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Default redirect after authentication
+        // Redirect based on role/permission after authentication
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user) {
+            // If user has explicit customer dashboard permission or role, send to customer portal
+            $hasCustomerDash = method_exists($user, 'hasPermissionTo') && $user->hasPermissionTo('view_customer_dashboard');
+
+            $isCustomerRole = method_exists($user, 'hasRole') && $user->hasRole('Customer');
+
+            if ($hasCustomerDash || $isCustomerRole) {
+                // Always send customers to the customer dashboard after login
+                return redirect()->route('customer.dashboard');
+            }
+        }
+
+        // Fallback to staff dashboard
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

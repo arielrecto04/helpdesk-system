@@ -71,15 +71,36 @@ class CustomerDashboardController extends Controller
         $customer = $user ? $user->customer : null;
 
         if (! $customer) {
-
             $userModel = $user;
-            $customer = Customer::create([
-                'user_id' => $userModel->id,
-                'first_name' => $userModel->first_name ?? null,
-                'middle_name' => $userModel->middle_name ?? null,
-                'last_name' => $userModel->last_name ?? null,
-                'email' => $userModel->email ?? null,
-            ]);
+
+            // Try to find an existing customer by email and link it to the user
+            if ($userModel && $userModel->email) {
+                $existing = Customer::where('email', $userModel->email)->first();
+                if ($existing) {
+                    $existing->user_id = $userModel->id;
+                    $existing->first_name = $existing->first_name ?: $userModel->first_name;
+                    $existing->middle_name = $existing->middle_name ?: $userModel->middle_name;
+                    $existing->last_name = $existing->last_name ?: $userModel->last_name;
+                    $existing->save();
+                    $customer = $existing;
+                } else {
+                    $customer = Customer::create([
+                        'user_id' => $userModel->id,
+                        'first_name' => $userModel->first_name ?? null,
+                        'middle_name' => $userModel->middle_name ?? null,
+                        'last_name' => $userModel->last_name ?? null,
+                        'email' => $userModel->email ?? null,
+                    ]);
+                }
+            } else {
+                $customer = Customer::create([
+                    'user_id' => null,
+                    'first_name' => $userModel->first_name ?? null,
+                    'middle_name' => $userModel->middle_name ?? null,
+                    'last_name' => $userModel->last_name ?? null,
+                    'email' => $userModel->email ?? null,
+                ]);
+            }
         }
 
         $validated = $request->validate([

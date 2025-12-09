@@ -111,7 +111,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/positions', [PositionsController::class, 'index'])->name('positions.index')->middleware('permission:show_positions');
     Route::get('/positions/create', [PositionsController::class, 'create'])->name('positions.create')->middleware('permission:create_positions');
     Route::post('/positions', [PositionsController::class, 'store'])->name('positions.store')->middleware('permission:create_positions');
-    // Route::get('/positions/{position}', [PositionsController::class, 'show'])->name('positions.show')->middleware('permission:view_positions');
     Route::get('/positions/{position}/edit', [PositionsController::class, 'edit'])->name('positions.edit')->middleware('permission:edit_positions');
     Route::put('/positions/{position}', [PositionsController::class, 'update'])->name('positions.update')->middleware('permission:edit_positions');
     Route::delete('/positions/{position}', [PositionsController::class, 'destroy'])->name('positions.destroy')->middleware('permission:delete_positions');

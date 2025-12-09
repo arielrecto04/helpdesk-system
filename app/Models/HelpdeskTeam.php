@@ -24,11 +24,14 @@ class HelpdeskTeam extends Model
     }
 
     /**
-     * The users that belong to this helpdesk team.
+     * The users that belong to this helpdesk team (via employee records).
+     * Note: Only returns users who have an employee record linked to this team.
      */
-    public function users(): BelongsToMany
+    public function users()
     {
-        return $this->belongsToMany(User::class, 'user_team', 'helpdesk_team_id', 'user_id');
+        return User::whereHas('employee.helpdeskTeams', function ($query) {
+            $query->where('helpdesk_teams.id', $this->id);
+        });
     }
 
     /**
