@@ -11,6 +11,7 @@ const props = defineProps({
     teams: { type: Array, default: () => [] },
     priorities: { type: Array, default: () => ['Low', 'Medium', 'High', 'Urgent'] },
     customer_id: { type: [Number, null], default: null },
+    tags: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -20,6 +21,7 @@ const form = useForm({
     priority: props.priorities && props.priorities.length ? props.priorities[1] : 'Medium',
     team_id: props.teams && props.teams.length ? props.teams[0].id : null,
     deadline: '',
+    tag_ids: [],
 });
 
 const submitTicket = () => {
@@ -97,6 +99,17 @@ const cancel = () => {
                             <TextInput id="deadline" type="date" v-model="form.deadline" class="mt-2 block w-full rounded-xl border-slate-200 bg-white py-2 px-3" />
                             <InputError class="mt-2" :message="form.errors.deadline" />
                         </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <InputLabel for="tags" value="Tags (optional)" />
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            <label v-for="tag in props.tags" :key="tag.id" class="inline-flex items-center gap-2 text-sm">
+                                <input type="checkbox" :value="tag.id" v-model="form.tag_ids" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                <span class="truncate">{{ tag.name }}</span>
+                            </label>
+                        </div>
+                        <InputError class="mt-2" :message="form.errors.tag_ids" />
                     </div>
 
                     <div class="flex items-center justify-between">

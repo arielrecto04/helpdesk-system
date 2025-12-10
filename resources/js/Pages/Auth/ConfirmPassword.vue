@@ -32,7 +32,7 @@ const submit = () => {
                 <TextInput
                     id="password"
                     type="password"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.password"
                     required
                     autocomplete="current-password"

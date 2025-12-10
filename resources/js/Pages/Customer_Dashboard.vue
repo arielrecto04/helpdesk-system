@@ -18,6 +18,7 @@ const props = defineProps({
 	teams: { type: Array, default: () => [] },
 	priorities: { type: Array, default: () => ['Low', 'Medium', 'High', 'Urgent'] },
 	customer_id: { type: [Number, null], default: null },
+	tags: { type: Array, default: () => [] },
 });
 
 const showCreateModal = ref(false);
@@ -53,6 +54,7 @@ const ticketStats = computed(() => {
 		open: data.filter(t => t.stage === 'Open').length,
 		inProgress: data.filter(t => t.stage === 'In Progress').length,
 		resolved: data.filter(t => ['Resolved', 'Closed'].includes(t.stage)).length,
+		closed: data.filter(t => t.stage === 'Closed').length,
 	};
 });
 
@@ -146,6 +148,16 @@ const logout = () => {
 					<span class="font-medium text-sm">Resolved</span>
 					<span class="ml-auto bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.resolved }}</span>
 				</a>
+
+				<a href="#" @click.prevent="activeFilter = 'closed'"
+					:class="activeFilter === 'closed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+					</svg>
+					<span class="font-medium text-sm">Closed</span>
+					<span class="ml-auto bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.closed }}</span>
+				</a>
 			</nav>
 
 			<!-- Bottom User Section -->
@@ -233,6 +245,14 @@ const logout = () => {
 										{{ ticket.priority }}
 									</span>
 								</div>
+
+								<!-- Tags -->
+								<div class="mt-3 flex flex-wrap gap-2">
+									<span v-for="tag in ticket.tags || []" :key="tag.id" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border">
+										{{ tag.name }}
+									</span>
+									<span v-if="!(ticket.tags && ticket.tags.length)" class="text-xs text-slate-500">No tags</span>
+								</div>
 							</div>
 						</div>
 						<svg class="w-6 h-6 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +291,7 @@ const logout = () => {
 
 		<!-- Create Ticket Modal -->
 		<Modal :show="showCreateModal" @close="showCreateModal = false" maxWidth="2xl">
-			<CreateTicket :teams="teams" :priorities="priorities" :customer_id="customer_id" @close="showCreateModal = false" />
+			<CreateTicket :teams="teams" :priorities="priorities" :customer_id="customer_id" :tags="tags" @close="showCreateModal = false" />
 		</Modal>
 
 		<!-- Profile Modal -->

@@ -11,6 +11,7 @@ use Inertia\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\RedirectResponse;
 use App\Models\Customer;
+use App\Models\Tag;
 
 class CustomerDashboardController extends Controller
 {
@@ -25,7 +26,7 @@ class CustomerDashboardController extends Controller
             }, function ($q) {
                 $q->whereNull('id');
             })
-            ->with(['team', 'assignedTo'])
+            ->with(['team', 'assignedTo', 'tags'])
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -33,12 +34,14 @@ class CustomerDashboardController extends Controller
         // Provide teams and priorities for the customer-facing create form
         $teams = HelpdeskTeam::all(['id', 'team_name']);
         $priorities = ['Low', 'Medium', 'High', 'Urgent'];
+        $tags = Tag::all(['id', 'name']);
 
         return Inertia::render('Customer_Dashboard', [
             'tickets' => $tickets,
             'pageTitle' => 'My Sent Tickets',
             'teams' => $teams,
             'priorities' => $priorities,
+            'tags' => $tags,
             'customer_id' => $customer ? $customer->id : null,
         ]);
     }
@@ -56,7 +59,7 @@ class CustomerDashboardController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $ticket->load(['team', 'assignedTo', 'customer']);
+        $ticket->load(['team', 'assignedTo', 'customer', 'tags']);
 
         return Inertia::render('Customer_Dashboard/Show', [
             'ticket' => $ticket,
@@ -109,6 +112,8 @@ class CustomerDashboardController extends Controller
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'team_id' => 'required|exists:helpdesk_teams,id',
             'deadline' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
 
         $data = array_merge($validated, [
@@ -119,6 +124,8 @@ class CustomerDashboardController extends Controller
         ]);
 
         $ticket = Ticket::create($data);
+        // attach tags if provided
+        $ticket->tags()->sync($request->input('tag_ids', []));
 
         return redirect()->route('customer.dashboard')->with('message', 'Ticket created successfully.');
     }

@@ -173,6 +173,17 @@ const goBack = () => {
           </div>
         </div>
 
+          <!-- Tags -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm mt-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Tags</h3>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="tag in ticket.tags || []" :key="tag.id" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-800 border">
+                {{ tag.name }}
+              </span>
+              <span v-if="!(ticket.tags && ticket.tags.length)" class="text-sm text-slate-500">No tags</span>
+            </div>
+          </div>
+
         <!-- Assigned To Section (if assigned) -->
         <div v-if="ticket.assignedTo" class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm mt-6">
           <div class="flex items-center gap-3 mb-4">

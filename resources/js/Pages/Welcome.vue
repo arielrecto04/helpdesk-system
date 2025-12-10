@@ -73,7 +73,7 @@ const stats = [
         <nav class="container mx-auto px-6 py-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-xl bg-white/10 shadow-inner backdrop-blur-md ring-1 ring-white/20"></div>
+                    <img src="/images/iits_logo.png" alt="Logo" class="h-10 w-10 rounded-xl object-cover shadow-inner backdrop-blur-md ring-1 ring-white/20" />
                     <div class="text-2xl font-semibold tracking-tight text-white">{{ brand }}</div>
                 </div>
                 <div class="space-x-3">

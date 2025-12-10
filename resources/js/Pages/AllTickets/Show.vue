@@ -98,6 +98,17 @@
                                 <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ ticket.description }}</p>
                             </div>
                         </div>
+
+                        <!-- Tags -->
+                        <div class="mt-6">
+                            <h3 class="text-lg font-medium text-gray-900">Tags</h3>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <span v-for="tag in ticket.tags || []" :key="tag.id" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-800 border">
+                                    {{ tag.name }}
+                                </span>
+                                <span v-if="!(ticket.tags && ticket.tags.length)" class="text-sm text-slate-500">No tags</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

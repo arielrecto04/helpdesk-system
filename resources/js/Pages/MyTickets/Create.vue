@@ -10,6 +10,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const props = defineProps({
     customers: Array,
     teams: Array,
+    tags: { type: Array, default: () => [] },
     users: Array,
     employees: Array,
     priorities: Array,
@@ -28,6 +29,7 @@ const form = useForm({
     team_id: props.defaultTeamId, 
     assigned_to_employee_id: props.currentEmployeeId, 
     deadline: '',
+    tag_ids: [],
 });
 
 const submit = () => {
@@ -124,6 +126,18 @@ const submit = () => {
                                         <TextInput id="deadline" type="date" class="mt-1 block w-full" v-model="form.deadline" />
                                         <InputError class="mt-2" :message="form.errors.deadline" />
                                     </div>
+
+                                        <!-- Tags Field (checkboxes for multi-select) -->
+                                        <div class="mt-4">
+                                            <InputLabel for="tags" value="Tags" />
+                                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                                <label v-for="tag in tags" :key="tag.id" class="inline-flex items-center gap-2 text-sm">
+                                                    <input type="checkbox" :value="tag.id" v-model="form.tag_ids" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                                    <span class="truncate">{{ tag.name }}</span>
+                                                </label>
+                                            </div>
+                                            <InputError class="mt-2" :message="form.errors.tag_ids" />
+                                        </div>
                                 </div>
                             </div>
                             <!-- ... Buttons ... -->

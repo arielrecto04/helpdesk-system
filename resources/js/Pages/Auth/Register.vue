@@ -4,16 +4,19 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const form = useForm({
     first_name: '',
     middle_name: '',
     last_name: '',
     email: '',
+    company: '',
     password: '',
     password_confirmation: '',
 });
+
+const companies = usePage().props.companies || [];
 
 const submit = () => {
     form.post(route('register'), {
@@ -33,7 +36,7 @@ const submit = () => {
                 <TextInput
                     id="first_name"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.first_name"
                     required
                     autofocus
@@ -49,7 +52,7 @@ const submit = () => {
                 <TextInput
                     id="middle_name"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.middle_name"
                     autocomplete="additional-name"
                 />
@@ -63,7 +66,7 @@ const submit = () => {
                 <TextInput
                     id="last_name"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.last_name"
                     required
                     autocomplete="family-name"
@@ -78,7 +81,7 @@ const submit = () => {
                 <TextInput
                     id="email"
                     type="email"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.email"
                     required
                     autocomplete="username"
@@ -88,12 +91,30 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
+                <InputLabel for="company" value="Company (optional)" class="text-white/80" />
+
+                <TextInput
+                    id="company"
+                    type="text"
+                    list="companies-list"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    v-model="form.company"
+                    autocomplete="organization"
+                />
+
+                <InputError class="mt-2 text-rose-300" :message="form.errors.company" />
+            </div>
+            <datalist id="companies-list">
+                <option v-for="c in companies" :key="c" :value="c"></option>
+            </datalist>
+
+            <div class="mt-4">
                 <InputLabel for="password" value="Password" class="text-white/80" />
 
                 <TextInput
                     id="password"
                     type="password"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.password"
                     required
                     autocomplete="new-password"
@@ -112,7 +133,7 @@ const submit = () => {
                 <TextInput
                     id="password_confirmation"
                     type="password"
-                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
+                    class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400 focus:border-[#3BA3FF] focus:ring-[#3BA3FF]"
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
@@ -127,7 +148,7 @@ const submit = () => {
             <div class="mt-6 flex items-center justify-between">
                 <Link
                     :href="route('login')"
-                    class="text-sm text-[#C9D3E8] underline hover:text-white"
+                    class="text-sm text-emerald-400 underline hover:text-emerald-300"
                 >
                     Already registered?
                 </Link>

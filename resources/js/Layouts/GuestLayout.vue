@@ -14,7 +14,7 @@ import { Link } from '@inertiajs/vue3';
         <div class="w-full">
             <div class="flex flex-col items-center">
                 <Link href="/" class="mb-6 flex items-center gap-3">
-                    <ApplicationLogo class="h-12 w-12 fill-current text-white/90" />
+                    <ApplicationLogo class="h-12 w-14 fill-current text-white/90" />
                     <div class="text-white/90 font-semibold text-lg">Innovato</div>
                 </Link>
             </div>

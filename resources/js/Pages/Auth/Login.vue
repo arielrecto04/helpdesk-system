@@ -5,6 +5,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const brand = 'Innovato Information Technology Solutions';
@@ -46,7 +47,7 @@ const submit = () => {
             <!-- Logo/Brand Section -->
             <div class="mb-8 text-center">
                 <div class="flex items-center justify-center gap-3">
-                    <div class="h-10 w-10 rounded-xl bg-white/10 shadow-inner backdrop-blur-md ring-1 ring-white/20"></div>
+                    <ApplicationLogo class="h-10 w-10 rounded-xl shadow-inner backdrop-blur-md ring-1 ring-white/20 object-cover" />
                     <div class="text-2xl font-semibold tracking-tight text-white">{{ brand }}</div>
                 </div>
                 <p class="mt-3 text-[#C9D3E8]">Welcome back — sign in to continue to your dashboard.</p>
@@ -62,7 +63,7 @@ const submit = () => {
                     <div>
                         <InputLabel for="email" value="Email" class="text-white/80" />
 
-                        <TextInput id="email" type="email" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60
+                        <TextInput id="email" type="email" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400
                             focus:border-[#3BA3FF] focus:ring-[#3BA3FF]" v-model="form.email" required
                             autofocus autocomplete="username" placeholder="you@company.com" />
 
@@ -71,7 +72,7 @@ const submit = () => {
 
                     <div class="mt-6">
                         <InputLabel for="password" value="Password" class="text-white/80" />
-                        <TextInput id="password" type="password" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-white placeholder-white/60
+                        <TextInput id="password" type="password" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400
                             focus:border-[#3BA3FF] focus:ring-[#3BA3FF]" v-model="form.password"
                             required autocomplete="current-password" placeholder="••••••••" />
 
@@ -98,7 +99,7 @@ const submit = () => {
 
                     <div class="mt-6 text-center">
                         <span class="text-sm text-white/80">Don't have an account?</span>
-                        <Link :href="route('register')" class="ml-1 text-sm text-[#C9D3E8] hover:text-white">
+                        <Link :href="route('register')" class="ml-1 text-sm text-emerald-400 hover:text-emerald-300">
                         Create Account
                         </Link>
                     </div>

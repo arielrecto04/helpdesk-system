@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\HelpdeskTeam;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -95,6 +96,7 @@ class TeamTicketsController extends Controller
             'customers' => $customers,
             'teams' => $teams,
             'employees' => Employee::all(['id', 'first_name', 'last_name']),
+            'tags' => Tag::all(['id', 'name']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
             'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
             'defaultTeamId' => request()->query('team_id'),
@@ -113,9 +115,16 @@ class TeamTicketsController extends Controller
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
 
         Ticket::create($validated);
+        // sync tags if provided (created ticket instance would be needed to sync)
+        $ticket = Ticket::latest('id')->first();
+        if ($ticket) {
+            $ticket->tags()->sync($request->input('tag_ids', []));
+        }
 
         return redirect()->route('teamtickets.index')->with('success', 'Ticket created successfully.');
     }
@@ -139,6 +148,8 @@ class TeamTicketsController extends Controller
         $priorities = ['Low', 'Medium', 'High', 'Urgent'];
         $stages = ['Open', 'In Progress', 'Resolved', 'Closed'];
 
+        $ticket->load(['tags']);
+
         return Inertia::render('TeamTickets/Edit', [
             'ticket' => $ticket,
             'customers' => $customers,
@@ -146,6 +157,7 @@ class TeamTicketsController extends Controller
             'employees' => $employees,
             'priorities' => $priorities,
             'stages' => $stages,
+            'tags' => Tag::all(['id', 'name']),
         ]);
     }
 
@@ -160,9 +172,12 @@ class TeamTicketsController extends Controller
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
 
         $ticket->update($validated);
+        $ticket->tags()->sync($request->input('tag_ids', []));
 
         return redirect()->route('teamtickets.index')->with('success', 'Ticket updated successfully.');
     }

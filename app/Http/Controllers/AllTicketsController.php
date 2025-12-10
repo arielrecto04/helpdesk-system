@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\HelpdeskTeam;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -76,6 +77,7 @@ class AllTicketsController extends Controller
             'customers' => Customer::all(['id', 'first_name', 'last_name']),
             'teams' => HelpdeskTeam::all(),
             'employees' => Employee::all(['id', 'first_name', 'last_name']),
+            'tags' => Tag::all(['id', 'name']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
             'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
             'defaultTeamId' => $request->query('team_id'),
@@ -101,8 +103,12 @@ class AllTicketsController extends Controller
             'team_id' => 'required|exists:helpdesk_teams,id',
             'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
         $ticket = Ticket::create($validated);
+        // Attach tags if provided
+        $ticket->tags()->sync($request->input('tag_ids', []));
         return redirect()->route('alltickets.index')->with('message', 'Ticket created successfully.');
     }
 
@@ -115,7 +121,7 @@ class AllTicketsController extends Controller
     public function show(Ticket $ticket): Response
     {
         /** @var User $user */
-        $ticket->load(['customer', 'assignedTo', 'team']);
+        $ticket->load(['customer', 'assignedTo', 'team', 'tags']);
         $ticket->assigned_employee_name = $ticket->assignedTo ? $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name : null;
 
         return Inertia::render('AllTickets/Show', [
@@ -144,6 +150,8 @@ class AllTicketsController extends Controller
             abort(403, 'Unauthorized. You can only edit tickets you are allowed to.');
         }
 
+        $ticket->load(['tags']);
+
         return Inertia::render('AllTickets/Edit', [
             'ticket' => $ticket,
             'customers' => Customer::all(['id', 'first_name', 'last_name']),
@@ -151,6 +159,7 @@ class AllTicketsController extends Controller
             'employees' => Employee::all(['id', 'first_name', 'last_name', 'user_id']),
             'priorities' => ['Low', 'Medium', 'High', 'Urgent'],
             'stages' => ['Open', 'In Progress', 'Resolved', 'Closed'],
+            'tags' => Tag::all(['id', 'name']),
         ]);
     }
 
@@ -185,9 +194,12 @@ class AllTicketsController extends Controller
             'team_id' => 'required|exists:helpdesk_teams,id',
             'assigned_to_employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
         ]);
 
         $ticket->update($validated);
+        $ticket->tags()->sync($request->input('tag_ids', []));
 
         return redirect()->route('alltickets.show', $ticket->id)->with('message', 'Ticket updated successfully.');
     }

@@ -14,6 +14,7 @@ const props = defineProps({
     employees: Array,
     priorities: Array,
     stages: Array,
+    tags: { type: Array, default: () => [] },
 });
 
 
@@ -29,6 +30,7 @@ const form = useForm({
     assigned_to_employee_id: props.ticket.assigned_to_employee_id,
     deadline: props.ticket.deadline,
     deadline: formattedDeadline,
+    tag_ids: props.ticket.tags ? props.ticket.tags.map(t => t.id) : [],
 });
 
 const submit = () => {
@@ -119,6 +121,18 @@ const submit = () => {
                                         <InputLabel for="deadline" value="Deadline" />
                                         <TextInput id="deadline" type="date" class="mt-1 block w-full" v-model="form.deadline" />
                                         <InputError class="mt-2" :message="form.errors.deadline" />
+                                    </div>
+
+                                    <!-- Tags Field (checkboxes) -->
+                                    <div class="mt-4">
+                                        <InputLabel for="tags" value="Tags" />
+                                        <div class="mt-2 grid grid-cols-2 gap-2">
+                                            <label v-for="tag in tags" :key="tag.id" class="inline-flex items-center gap-2 text-sm">
+                                                <input type="checkbox" :value="tag.id" v-model="form.tag_ids" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                                <span class="truncate">{{ tag.name }}</span>
+                                            </label>
+                                        </div>
+                                        <InputError class="mt-2" :message="form.errors.tag_ids" />
                                     </div>
                                 </div>
                             </div>
