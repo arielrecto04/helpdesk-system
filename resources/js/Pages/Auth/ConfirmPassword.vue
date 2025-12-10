@@ -43,7 +43,7 @@ const submit = () => {
 
             <div class="mt-4 flex justify-end">
                 <PrimaryButton
-                    class="ms-4 rounded-full bg-[#3BA3FF] px-6 py-2 text-[#0A1733]"
+                    class="w-full sm:w-auto ms-4 justify-center rounded-full bg-[#0B66B3] px-6 py-3 text-white hover:bg-[#0E71C2] shadow-[0_12px_30px_-6px_rgba(0,0,0,0.6)] hover:shadow-[0_18px_44px_-12px_rgba(0,0,0,0.6)]"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

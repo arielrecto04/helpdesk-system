@@ -39,7 +39,7 @@ const stats = [
     <Head title="Innovato Information Technology Solutions — Helpdesk" />
 
     <!-- Hero Section -->
-    <div class="min-h-screen relative overflow-hidden bg-gradient-to-b from-[#0A1733] to-[#0E2255]">
+    <div class="min-h-screen relative overflow-hidden bg-gradient-to-b from-[#123A66] to-[#1E4F8F]">
         <!-- Abstract tech background shapes -->
         <div aria-hidden="true" class="pointer-events-none absolute inset-0">
             <div class="absolute -top-32 -left-40 h-[600px] w-[600px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#1A3B8E]/40 via-transparent to-transparent blur-2xl"></div>
@@ -94,10 +94,10 @@ const stats = [
             <div class="flex flex-col items-center text-center">
                 <!-- 3D Isometric Avatar Placeholder (replace with real render) -->
                 <div class="relative mb-10">
-                    <div class="mx-auto h-[380px] w-[680px] rounded-3xl bg-gradient-to-br from-[#0F2A66] to-[#162B49] shadow-2xl ring-1 ring-white/10 backdrop-blur-xl" style="perspective:1000px">
+                    <div class="mx-auto h-[380px] w-[680px] rounded-3xl bg-gradient-to-br from-[#15447A] to-[#1E588F] shadow-2xl ring-1 ring-white/10 backdrop-blur-xl" style="perspective:1000px">
                         <div class="absolute inset-6 rounded-2xl bg-white/8 backdrop-blur-xl ring-1 ring-white/10 shadow-lg" style="transform:rotateX(8deg) rotateY(-6deg); transform-style:preserve-3d"></div>
                         <!-- Floating UI widgets -->
-                        <div class="absolute -top-6 left-10 h-14 w-44 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 shadow-md"></div>
+                        <div class="absolute -top-6 left-10 h-14 w-44 rounded-full bg-white/12 backdrop-blur-md ring-1 ring-white/20 shadow-md"></div>
                         <div class="absolute top-8 -right-6 h-20 w-20 rounded-2xl bg-[#3BA3FF]/20 ring-1 ring-[#3BA3FF]/40 blur-[1px]"></div>
                         <div class="absolute bottom-10 left-6 h-24 w-56 rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20"></div>
                         <!-- Soft glowing data particles -->
@@ -123,7 +123,7 @@ const stats = [
                 <div class="relative">
                     <div class="flex items-center gap-3 rounded-full bg-white/10 px-4 py-4 backdrop-blur-xl ring-1 ring-white/20 shadow-xl">
                         <!-- Submit a Ticket (primary, solid electric blue) -->
-                        <Link :href="route('register')" class="inline-flex items-center gap-2 rounded-full bg-[#3BA3FF] px-6 py-2.5 text-sm font-semibold text-[#0A1733] shadow-[0_12px_24px_-6px_rgba(59,163,255,0.45)] hover:bg-[#49B2FF]">
+                        <Link :href="route('register')" class="inline-flex items-center gap-2 rounded-full bg-[#3BA3FF] px-6 py-2.5 text-sm font-semibold text-[#0E2A44] shadow-[0_12px_24px_-6px_rgba(59,163,255,0.45)] hover:bg-[#49B2FF]">
                             <span>Submit a Ticket</span>
                         </Link>
                         <!-- Login (ghost outline) -->
@@ -141,7 +141,7 @@ const stats = [
         </div>
 
         <!-- Stats Section -->
-        <div class="bg-[#0E2255]/40 py-16 backdrop-blur-sm">
+        <div class="bg-[#1E4F8F]/30 py-16 backdrop-blur-sm">
             <div class="container mx-auto grid grid-cols-1 gap-8 px-6 md:grid-cols-4">
                 <div v-for="stat in stats" :key="stat.label" class="text-center">
                     <div class="text-4xl font-semibold tracking-tight text-white">{{ stat.number }}</div>
@@ -182,7 +182,7 @@ const stats = [
             </h2>
             <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
                 <div class="text-center">
-                    <div class="mb-4 inline-block rounded-full bg-[#0E2255] p-4 text-white">
+                    <div class="mb-4 inline-block rounded-full bg-[#1E4F8F] p-4 text-white">
                         1
                     </div>
                     <h3 class="mb-2 text-xl font-semibold">Submit Ticket</h3>
@@ -191,7 +191,7 @@ const stats = [
                     </p>
                 </div>
                 <div class="text-center">
-                    <div class="mb-4 inline-block rounded-full bg-[#0E2255] p-4 text-white">
+                    <div class="mb-4 inline-block rounded-full bg-[#1E4F8F] p-4 text-white">
                         2
                     </div>
                     <h3 class="mb-2 text-xl font-semibold">Get Assigned</h3>
@@ -200,7 +200,7 @@ const stats = [
                     </p>
                 </div>
                 <div class="text-center">
-                    <div class="mb-4 inline-block rounded-full bg-[#0E2255] p-4 text-white">
+                    <div class="mb-4 inline-block rounded-full bg-[#1E4F8F] p-4 text-white">
                         3
                     </div>
                     <h3 class="mb-2 text-xl font-semibold">Problem Solved</h3>
@@ -213,7 +213,7 @@ const stats = [
     </div>
 
     <!-- CTA Section -->
-    <div class="bg-[#0A1733] py-20 text-center">
+    <div class="bg-[#123A66] py-20 text-center">
         <div class="container mx-auto px-6">
             <h2 class="mb-6 text-3xl font-bold text-white">
                 Ready to Get Started?
@@ -221,14 +221,14 @@ const stats = [
             <p class="mb-8 text-[#C9D3E8]">
                 Join thousands of satisfied customers who trust our helpdesk solution
             </p>
-            <button class="rounded-full bg-[#3BA3FF] px-8 py-4 text-lg font-semibold text-[#0A1733] shadow-[0_12px_24px_-6px_rgba(59,163,255,0.45)] hover:bg-[#49B2FF]">
+            <button class="rounded-full bg-[#3BA3FF] px-8 py-4 text-lg font-semibold text-[#0E2A44] shadow-[0_12px_24px_-6px_rgba(59,163,255,0.45)] hover:bg-[#49B2FF]">
                 Create Free Account
             </button>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-[#0A1733] py-12 text-gray-400">
+    <footer class="bg-[#123A66] py-12 text-gray-400">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div>

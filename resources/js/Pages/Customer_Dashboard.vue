@@ -93,84 +93,93 @@ const logout = () => {
 	router.post(route('logout'));
 };
 
+const isSidebarOpen = ref(true);
+
 </script>
 
 <template>
 	<Head :title="pageTitle" />
 
-	<div class="min-h-screen bg-slate-50 flex">
+	<div class="h-screen w-full bg-slate-50 flex overflow-hidden">
 		<!-- Left Sidebar Navigation -->
-		<aside class="w-64 bg-white border-r border-slate-200 flex flex-col">
+		<aside 
+			class="bg-white border-r border-slate-200 flex flex-col transition-all duration-300 overflow-hidden whitespace-nowrap"
+			:class="[
+				isSidebarOpen ? 'w-64 opacity-100 shadow-[0_20px_40px_-10px_rgba(2,6,23,0.65)]' : 'w-0 opacity-0 border-none p-0 shadow-none'
+			]">
 			<!-- Logo/Brand -->
-			<div class="p-6 border-b border-slate-200">
-				<h1 class="text-xl font-bold text-slate-800">Support Hub</h1>
-				<p class="text-xs text-slate-500 mt-1">Customer Portal</p>
+			<div class="p-6 border-b border-slate-200 flex items-center gap-3">
+				<img src="/images/iits_logo.png" alt="IITS Logo" class="w-11 h-10 object-contain" />
+				<div>
+					<h1 class="text-xl font-bold text-slate-800">Customer Portal</h1>
+					<p class="text-xs text-slate-500 mt-1">Dashboard</p>
+				</div>
 			</div>
 
 			<!-- Navigation Menu -->
 			<nav class="flex-1 p-4 space-y-1">
 				<a href="#" @click.prevent="activeFilter = 'all'" 
-					:class="activeFilter === 'all' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					:class="activeFilter === 'all' ? 'bg-blue-500 text-white-700 border-blue-200' : 'text-slate-600 hover:bg-slate-300'"
 					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 					</svg>
 					<span class="font-medium text-sm">All Tickets</span>
-					<span class="ml-auto bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.total }}</span>
+					<span class="ml-auto bg-slate-300 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.total }}</span>
 				</a>
 
 				<a href="#" @click.prevent="activeFilter = 'open'"
-					:class="activeFilter === 'open' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					:class="activeFilter === 'open' ? 'bg-blue-500 text-white-700 border-blue-200' : 'text-slate-600 hover:bg-slate-300'"
 					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 					<span class="font-medium text-sm">Open</span>
-					<span class="ml-auto bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.open }}</span>
+					<span class="ml-auto bg-blue-300 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.open }}</span>
 				</a>
 
 				<a href="#" @click.prevent="activeFilter = 'in progress'"
-					:class="activeFilter === 'in progress' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					:class="activeFilter === 'in progress' ? 'bg-blue-500 text-white-700 border-blue-200' : 'text-slate-600 hover:bg-slate-300'"
 					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
 					</svg>
 					<span class="font-medium text-sm">In Progress</span>
-					<span class="ml-auto bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.inProgress }}</span>
+					<span class="ml-auto bg-amber-300 text-amber-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.inProgress }}</span>
 				</a>
 
 				<a href="#" @click.prevent="activeFilter = 'resolved'"
-					:class="activeFilter === 'resolved' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					:class="activeFilter === 'resolved' ? 'bg-blue-500 text-white-700 border-blue-200' : 'text-slate-600 hover:bg-slate-300'"
 					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 					<span class="font-medium text-sm">Resolved</span>
-					<span class="ml-auto bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.resolved }}</span>
+					<span class="ml-auto bg-emerald-300 text-emerald-700 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.resolved }}</span>
 				</a>
 
 				<a href="#" @click.prevent="activeFilter = 'closed'"
-					:class="activeFilter === 'closed' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'text-slate-600 hover:bg-slate-50'"
+					:class="activeFilter === 'closed' ? 'bg-blue-500 text-white-700 border-blue-200' : 'text-slate-600 hover:bg-slate-300'"
 					class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 border border-transparent">
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 					</svg>
 					<span class="font-medium text-sm">Closed</span>
-					<span class="ml-auto bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.closed }}</span>
+					<span class="ml-auto bg-slate-300 text-slate-00 text-xs px-2 py-0.5 rounded-full font-semibold">{{ ticketStats.closed }}</span>
 				</a>
 			</nav>
 
 			<!-- Bottom User Section -->
 			<div class="p-4 border-t border-slate-200">
-				<button @click="showProfileModal = true" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition">
+				<button @click="showProfileModal = true" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-300 transition">
 					<div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
 						{{ $page.props.auth.user?.first_name?.[0] || 'U' }}
 					</div>
 					<div class="flex-1 min-w-0">
 						<p class="text-sm font-medium text-slate-800 truncate">{{ $page.props.auth.user?.first_name || 'User' }}</p>
-						<p class="text-xs text-slate-500 truncate">{{ $page.props.auth.user?.email || '' }}</p>
+						<p class="text-xs text-slate-700 truncate">{{ $page.props.auth.user?.email || '' }}</p>
 					</div>
-					<svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="w-4 h-4 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 					</svg>
 				</button>
@@ -180,11 +189,26 @@ const logout = () => {
 		<!-- Main Content Area -->
 		<main class="flex-1 flex flex-col overflow-hidden">
 			<!-- Top Header Bar -->
-			<header class="bg-white border-b border-slate-200 px-8 py-6">
-				<div class="flex items-center justify-between">
-					<div>
-						<h2 class="text-2xl font-bold text-slate-800">My Tickets</h2>
-						<p class="text-sm text-slate-500 mt-1">Manage and track your support requests</p>
+			<header class="bg-white border-b border-slate-400 px-8 py-6">
+    			<div class="flex items-center justify-between">
+					<div class="flex items-center gap-4">
+						<button 
+							@click="isSidebarOpen = !isSidebarOpen"
+							class="p-2 rounded-lg bg-slate-200 text-slate-500 hover:bg-slate-300 hover:text-blue-700 focus:outline-none transition-colors"
+							title="Toggle Sidebar"
+						>
+							<svg v-if="!isSidebarOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+							</svg>
+							<svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+							</svg>
+						</button>
+
+						<div>
+							<h2 class="text-2xl font-bold text-slate-800">My Tickets</h2>
+							<p class="text-sm text-slate-500 mt-1">Manage and track your support requests</p>
+						</div>
 					</div>
 					<button @click="showCreateModal = true"
 						class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 font-medium">
@@ -225,10 +249,10 @@ const logout = () => {
 				<!-- Ticket Cards -->
 				<div v-for="ticket in filteredTickets" :key="ticket.id"
 					@click="viewTicket(ticket.id)"
-					class="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl hover:border-blue-300 transition-all duration-300 cursor-pointer group">
+					class="bg-white border border-slate-300 rounded-2xl p-6 hover:shadow-xl hover:border-blue-500 transition-all duration-300 cursor-pointer group">
 					<div class="flex items-start justify-between mb-4">
 						<div class="flex items-start gap-4 flex-1">
-							<div class="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-600 font-bold group-hover:from-blue-50 group-hover:to-blue-100 group-hover:text-blue-600 transition-all duration-300">
+							<div class="w-12 h-12 bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl flex items-center justify-center text-slate-600 font-bold group-hover:from-blue-50 group-hover:to-blue-300 group-hover:text-blue-600 transition-all duration-300">
 								#{{ ticket.id }}
 							</div>
 							<div class="flex-1 min-w-0">
@@ -248,7 +272,7 @@ const logout = () => {
 
 								<!-- Tags -->
 								<div class="mt-3 flex flex-wrap gap-2">
-									<span v-for="tag in ticket.tags || []" :key="tag.id" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 border">
+									<span v-for="tag in ticket.tags || []" :key="tag.id" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-slate-200 text-slate-800 border">
 										{{ tag.name }}
 									</span>
 									<span v-if="!(ticket.tags && ticket.tags.length)" class="text-xs text-slate-500">No tags</span>

@@ -27,7 +27,12 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Register — Innovato" />
+        <Head title="Register — IITS Helpdesk Ticketing System" />
+
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-bold text-white">Register</h2>
+            <p class="mt-2 text-sm text-[#C9D3E8]">Create an account to access your helpdesk dashboard.</p>
+        </div>
 
         <form @submit.prevent="submit">
             <div>
@@ -145,7 +150,7 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-6 flex items-center justify-between">
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <Link
                     :href="route('login')"
                     class="text-sm text-emerald-400 underline hover:text-emerald-300"
@@ -154,7 +159,7 @@ const submit = () => {
                 </Link>
 
                 <PrimaryButton
-                    class="ms-4 rounded-full bg-[#3BA3FF] px-6 py-2 text-[#0A1733]"
+                    class="w-full sm:w-auto justify-center rounded-full bg-[#0B66B3] px-6 py-3 text-white hover:bg-[#0E71C2] shadow-[0_12px_30px_-6px_rgba(0,0,0,0.6)] hover:shadow-[0_18px_44px_-12px_rgba(0,0,0,0.6)]"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Breadcrumb from '@/Components/Breadcrumb.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -43,17 +44,34 @@ const submit = () => {
     <Head title="Create New Ticket" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Create New Ticket
-            </h2>
-        </template>
+        <div class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-8">
+            <!-- Header Banner -->
+            <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl shadow-xl p-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="bg-white/20 p-3 rounded-xl mr-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-3xl text-white">Create New Ticket</h2>
+                                <p class="text-blue-100 text-sm mt-1">Fill in the details below</p>
+                            </div>
+                        </div>
+                        <Breadcrumb :items="[
+                          { label: 'Home', href: route('dashboard') },
+                          { label: 'All Tickets', href: route('alltickets.index') },
+                          { label: 'Create' }
+                        ]" />
+                    </div>
+                </div>
+            </div>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
+            <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-200">
+                    <div class="p-6 bg-white">
                         <form @submit.prevent="submit">
                              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
