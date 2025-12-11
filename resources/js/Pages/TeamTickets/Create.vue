@@ -1,11 +1,11 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import CreateLayout from '@/Components/CreateLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Textarea from '@/Components/Textarea.vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     customers: Array,
@@ -43,18 +43,18 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create New Ticket" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create New Ticket</h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <form @submit.prevent="submit">
+    <CreateLayout
+        title="Create New Ticket"
+        subtitle="Submit a support ticket for your team"
+        :breadcrumb-items="[
+            { label: 'Home', href: route('dashboard') },
+            { label: 'Team Tickets', href: route('teamtickets.index') },
+            { label: 'Create' }
+        ]"
+        icon="ticket"
+        max-width="full"
+    >
+        <form @submit.prevent="submit">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <div>
@@ -134,15 +134,10 @@ const submit = () => {
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-end mt-6">
-                                <Link :href="route(`${storePrefix}.index`)" class="text-sm text-gray-600 hover:text-gray-900 underline">Cancel</Link>
-
-                                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">Create Ticket</PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            <div class="flex items-center justify-end mt-6">
+                <Link :href="route(`${storePrefix}.index`)" class="text-sm text-gray-600 hover:text-gray-900 underline">Cancel</Link>
+                <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">Create Ticket</PrimaryButton>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </form>
+    </CreateLayout>
 </template>

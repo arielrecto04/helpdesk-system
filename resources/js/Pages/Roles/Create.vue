@@ -1,20 +1,20 @@
 <script setup>
 import { computed } from 'vue';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import CreateLayout from '@/Components/CreateLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps({
-    all_permissions: Array, // Ito yung galing sa controller
+    all_permissions: Array,
 });
 
 const form = useForm({
     name: '',
     description: '',
-    permissions: [], // Dito ilalagay ang mga IDs ng piniling permissions
+    permissions: [],
 });
 
 // Categorize permissions
@@ -87,17 +87,18 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create Role" />
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Create New Role</h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <form @submit.prevent="submit">
+    <CreateLayout
+        title="Create Role"
+        subtitle="Define a new role with specific permissions"
+        :breadcrumb-items="[
+            { label: 'Home', href: route('dashboard') },
+            { label: 'Roles', href: route('roles.index') },
+            { label: 'Create' }
+        ]"
+        icon="plus"
+        max-width="7xl"
+    >
+        <form @submit.prevent="submit">
                             <!-- Role Name -->
                             <div>
                                 <InputLabel for="name" value="Role Name" />
@@ -150,19 +151,15 @@ const submit = () => {
                                 <InputError class="mt-2" :message="form.errors.permissions" />
                             </div>
                             
-                            <!-- Buttons -->
-                            <div class="flex items-center justify-end mt-6">
-                                <Link :href="route('roles.index')" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                                    Cancel
-                                </Link>
-                                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                                    Create Role
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            <!-- Buttons -->
+            <div class="flex items-center justify-end mt-6">
+                <Link :href="route('roles.index')" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                    Cancel
+                </Link>
+                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                    Create Role
+                </PrimaryButton>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </form>
+    </CreateLayout>
 </template>

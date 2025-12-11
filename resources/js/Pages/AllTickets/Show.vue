@@ -34,7 +34,7 @@
             </div>
 
             <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-200">
+                <div class="bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-400">
                     <div class="p-6 text-gray-900">
                         <div class="flex items-center mb-6 pb-4 border-b">
                             <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-3 rounded-xl mr-3">

@@ -99,8 +99,8 @@ const tabs = [
             :class="[ isSidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full opacity-0 overflow-hidden' ]"
         >
             <div class="flex items-center gap-3 h-16 px-6 bg-slate-950 border-b border-slate-800 shrink-0">
-                <ApplicationLogo class="w-8 h-8 text-blue-500 fill-current" />
-                <span class="text-white font-bold text-lg tracking-wide whitespace-nowrap">HelpDesk</span>
+                <ApplicationLogo class="w-9 h-8 text-blue-500 fill-current" />
+                <span class="text-white font-bold text-lg tracking-wide whitespace-nowrap">IITS Helpdesk</span>
             </div>
 
             <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-6 scrollbar-thin scrollbar-thumb-slate-700">
@@ -108,10 +108,10 @@ const tabs = [
                     
                     <div v-if="tab.type === 'tab'">
                          <Link :href="tab.href"
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group transform"
                             :class="route().current('dashboard') 
-                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                                : 'hover:bg-slate-800 hover:text-white'"
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 translate-x-2' 
+                                : 'hover:bg-slate-800 hover:text-white hover:translate-x-2'"
                         >
                             <svg class="w-5 h-5 transition-colors" :class="route().current('dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-white'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="getIcon(tab.icon)" />
@@ -130,11 +130,11 @@ const tabs = [
 
                         <div class="space-y-1 ml-2 pl-2 border-l border-slate-700/50">
                             <Link v-for="item in tab.items" :key="item.name" :href="item.href"
-                                class="block px-3 py-2 rounded-md text-sm transition-colors duration-200 whitespace-nowrap"
+                                class="block px-3 py-2 rounded-md text-sm transition-all duration-500 group transform"
                                 :class="[
                                     (item.routeName && route().current(item.routeName)) 
-                                        ? 'text-blue-400 bg-slate-800/50 font-medium border-r-2 border-blue-500' 
-                                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 translate-x-4' 
+                                        : 'hover:bg-slate-800 hover:text-white hover:translate-x-4'
                                 ]"
                             >
                                 {{ item.name }}
@@ -146,7 +146,7 @@ const tabs = [
             </nav>
 
             <div class="p-4 bg-slate-950 border-t border-slate-800 text-xs text-slate-500 whitespace-nowrap overflow-hidden">
-                <p>&copy; 2024 Support Hub</p>
+                <p>&copy; 2025 Helpdesk Ticketing System</p>
                 <p>v1.0.0</p>
             </div>
         </aside>
@@ -221,7 +221,7 @@ const tabs = [
 </template>
 
 <style scoped>
-/* Custom Scrollbar for Sidebar */
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }

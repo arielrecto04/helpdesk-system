@@ -1,16 +1,15 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import CreateLayout from '@/Components/CreateLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-// --- INAYOS: Idinagdag ang 'computed' ---
+import { Link, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
-    prefill: Object, // Ito ay null kung galing sa generic 'create user'
-    roles: { type: Array, default: () => [] }, // optional roles list when creating account for employee
+    prefill: Object,
+    roles: { type: Array, default: () => [] },
     is_customer: { type: Boolean, default: false },
 });
 
@@ -25,30 +24,24 @@ const form = useForm({
     customer_id: props.prefill?.customer_id ?? null,
 });
 
-// --- INAYOS: Nag-check kung ito ay para sa employee o customer ---
 const isEmployeeAccount = computed(() => !!props.prefill && !props.is_customer);
 const isCustomerAccount = computed(() => !!props.is_customer);
 
-// expose convenient bindings for template usage
 const prefill = props.prefill ?? null;
 const roles = props.roles ?? [];
 const is_customer = props.is_customer ?? false;
 
-// selectedRole keeps the dropdown single-select state; keep form.roles as array for backend
 const selectedRole = ref(form.roles && form.roles.length ? form.roles[0] : null);
 watch(selectedRole, (val) => {
     form.roles = val ? [val] : [];
 });
 
-// --- INAYOS: Inayos ang buong submit logic ---
 const submit = () => {
     if (isEmployeeAccount.value) {
-        // 1. Kung galing sa Employee page, sa 'employees.storeAccount' i-submit
         form.post(route('employees.storeAccount', { employee: props.prefill?.employee_id }), {
             onError: () => form.reset('password', 'password_confirmation'),
         });
     } else {
-        // 2. Generic create (could be customer or manual user creation)
         form.post(route('users.store'), {
             onSuccess: () => form.reset(),
             onError: () => form.reset('password', 'password_confirmation'),
@@ -56,7 +49,6 @@ const submit = () => {
     }
 };
 
-// --- INAYOS: Dynamic na 'Cancel' link ---
 const cancelRoute = computed(() => {
     if (isEmployeeAccount.value) {
         return route('employees.show', { employee: props.prefill?.employee_id });
@@ -66,23 +58,39 @@ const cancelRoute = computed(() => {
     }
     return route('users.index');
 });
+
+const pageTitle = computed(() => {
+    if (isEmployeeAccount.value) {
+        return `Create Account for: ${prefill?.first_name ?? ''} ${prefill?.last_name ?? ''}`;
+    }
+    return 'Create New User';
+});
+
+const breadcrumbItems = computed(() => {
+    if (isEmployeeAccount.value) {
+        return [
+            { label: 'Home', href: route('dashboard') },
+            { label: 'Employees', href: route('employees.index') },
+            { label: 'Create Account' }
+        ];
+    }
+    return [
+        { label: 'Home', href: route('dashboard') },
+        { label: 'Users', href: route('users.index') },
+        { label: 'Create' }
+    ];
+});
 </script>
 
 <template>
-    <Head title="Create User" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ isEmployeeAccount ? `Create Account for: ${prefill?.first_name ?? ''} ${prefill?.last_name ?? ''}` : 'Create New User' }}
-            </h2>
-        </template>
-
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <form @submit.prevent="submit" class="max-w-2xl mx-auto">
+    <CreateLayout
+        :title="pageTitle"
+        subtitle="Create a new user account with credentials"
+        :breadcrumb-items="breadcrumbItems"
+        icon="plus"
+        max-width="2xl"
+    >
+        <form @submit.prevent="submit">
 
                             <div>
                                 <InputLabel for="first_name" value="First Name" />
@@ -177,22 +185,17 @@ const cancelRoute = computed(() => {
                                 <p v-if="roles && roles.length > 0 && !selectedRole" class="text-sm text-red-600 mt-2">Please select a role.</p>
                             </div>
 
-                            <!-- Hidden customer id for customer-account flow -->
-                            <input v-if="form.customer_id" type="hidden" v-model="form.customer_id" />
+            <!-- Hidden customer id for customer-account flow -->
+            <input v-if="form.customer_id" type="hidden" v-model="form.customer_id" />
 
-                            <div class="flex items-center justify-end mt-6">
-                                <Link :href="cancelRoute" class="text-sm text-gray-600 hover:text-gray-900 underline">
-                                    Cancel
-                                </Link>
-
-                                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing || (roles && roles.length > 0 && !selectedRole)">
-                                    Create User
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            <div class="flex items-center justify-end mt-6">
+                <Link :href="cancelRoute" class="text-sm text-gray-600 hover:text-gray-900 underline">
+                    Cancel
+                </Link>
+                <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" :disabled="form.processing || (roles && roles.length > 0 && !selectedRole)">
+                    Create User
+                </PrimaryButton>
             </div>
-        </div>
-    </AuthenticatedLayout>
+        </form>
+    </CreateLayout>
 </template>

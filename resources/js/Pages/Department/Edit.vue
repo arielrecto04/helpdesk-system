@@ -23,17 +23,39 @@ const submit = () => {
 <template>
     <Head :title="'Edit Department: ' + department.department_name" />
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Edit Department: <span class="font-bold">{{ department.department_name }}</span>
-            </h2>
-        </template>
+        <div class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen py-8">
+            <!-- Header Banner -->
+            <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+                <div class="bg-gradient-to-r from-indigo-600 to-blue-600 rounded-2xl shadow-xl p-6">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="bg-white/20 p-3 rounded-xl mr-4">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M5 10h14M7 13h10M9 16h6" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="font-bold text-3xl text-white">Edit Department</h2>
+                                <p class="text-blue-100 text-sm mt-1">{{ department.department_name }}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <Link :href="route('departments.show', { department: department.id })" class="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold text-sm shadow-lg hover:bg-blue-50 hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                                </svg>
+                                Back
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <form @submit.prevent="submit" class="max-w-2xl mx-auto"> <div>
+            <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-400">
+                    <div class="p-6 bg-white">
+                        <form @submit.prevent="submit" class="max-w-2xl mx-auto">
+                            <div>
                                 <InputLabel for="department_name" value="Department Name" />
                                 <TextInput
                                     id="department_name"

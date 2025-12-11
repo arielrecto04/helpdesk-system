@@ -1,85 +1,105 @@
 <template>
-    <Head :title="`User`" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                User Name - {{ user.name }}
-            </h2>
+    <ShowLayout
+        :title="`${user.first_name} ${user.last_name}`"
+        subtitle="User Information"
+        icon="user"
+        :actions="userPermissions && (userPermissions.includes('edit_users') || userPermissions.includes('delete_users'))"
+    >
+        <template #actions>
+            <Link v-if="userPermissions.includes('edit_users')" :href="route('users.edit', user.id)" class="inline-flex items-center px-6 py-3 bg-white text-indigo-600 rounded-xl font-semibold text-sm shadow-lg hover:bg-blue-50 hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-4M11 4l10 10M11 4v6h6"/>
+                </svg>
+                Edit
+            </Link>
+            <DangerButton v-if="userPermissions.includes('delete_users')" @click="confirmUserDeletion" class="bg-white/20 text-white hover:bg-white/30 rounded-xl px-6 py-3">
+                Delete
+            </DangerButton>
         </template>
 
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-                        <h2 class="font-semibold text-xl text-gray-800 leading-tight border-b pb-4 mb-6">
-                            <div class="flex justify-between items-center">
-                                <span>User Name - {{ user.name }}</span>
-                                <!-- Add Edit Button & Delete Button (only when permissions enabled) -->
-                                <div class="flex space-x-2" v-if="userPermissions && (userPermissions.includes('edit_users') || userPermissions.includes('delete_users'))">
-                                    <Link v-if="userPermissions.includes('edit_users')" :href="route('users.edit', user.id)" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                        Edit
-                                    </Link>
-                                    <DangerButton v-if="userPermissions.includes('delete_users')" @click="confirmUserDeletion">Delete</DangerButton>
-                                </div>
-                            </div>
-                        </h2>
-
-                        <!-- Ticket Details -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">General Information</h3>
-                                <dl class="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">ID</dt>
-                                        <dd class="mt-1 text-sm text-gray-900 font-mono">#{{ user.id }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">First Name</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.first_name }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Middle Name</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.middle_name }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Last Name</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.last_name }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Email</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.email }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Roles</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">
-                                            <span v-for="(role, index) in user.roles" :key="role.id">
-                                                {{ role.name }}
-                                                <span v-if="index < user.roles.length - 1">, </span>
-                                            </span>
-                                        </dd>
-                                    </div>
-
-                                </dl>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Information</h3>
-                                <dl class="grid grid-cols-1 gap-4">
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Created At</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.created_at }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-sm font-medium text-gray-500">Updated At</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ user.updated_at }}</dd>
-                                    </div>
-                                </dl>
-                            </div>
-                        </div>
-                        
+        <div class="bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-400">
+            <div class="p-6 text-gray-900">
+                <div class="flex items-center mb-6 pb-4 border-b">
+                    <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-3 rounded-xl mr-3">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-xl text-gray-800">User Details</h2>
+                        <p class="text-sm text-gray-500">ID: #{{ user.id }}</p>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center mb-4">
+                            <div class="bg-gradient-to-br from-purple-500 to-indigo-600 p-2 rounded-lg mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">General Information</h3>
+                        </div>
+                        <dl class="grid grid-cols-1 gap-4">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">ID</dt>
+                                <dd class="mt-1 text-sm text-gray-900 font-mono">#{{ user.id }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">First Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.first_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Middle Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.middle_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Last Name</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.last_name }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ user.email }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Roles</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    <div class="flex flex-wrap gap-2">
+                                        <span v-for="role in user.roles" :key="role.id" class="px-3 py-1.5 inline-flex items-center text-xs leading-5 font-bold rounded-xl shadow-sm bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 border border-blue-200">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                            </svg>
+                                            {{ role.name }}
+                                        </span>
+                                    </div>
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div>
+                        <div class="flex items-center mb-4">
+                            <div class="bg-gradient-to-br from-teal-500 to-emerald-600 p-2 rounded-lg mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">Additional Information</h3>
+                        </div>
+                        <dl class="grid grid-cols-1 gap-4">
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Created At</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ new Date(user.created_at).toLocaleString() }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Updated At</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ new Date(user.updated_at).toLocaleString() }}</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
 
                 <Modal :show="confirmingUserDeletion" @close="closeModal">
                     <div class="p-6">
@@ -102,16 +122,14 @@
                         </div>
                     </div>
                 </Modal>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+    </ShowLayout>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import ShowLayout from '@/Components/ShowLayout.vue';
+import { Link, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
