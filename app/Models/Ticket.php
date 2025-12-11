@@ -71,6 +71,11 @@ class Ticket extends Model
         return $this->belongsToMany(Tag::class, 'tag_ticket');
     }
 
+    public function messages()
+    {
+        return $this->hasMany(TicketMessage::class);
+    }
+
     /**
      * Apply visibility filters based on the authenticated user's permissions.
      *

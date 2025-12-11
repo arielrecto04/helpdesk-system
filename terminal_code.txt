@@ -1,0 +1,11 @@
+# Run Laravel app
+php artisan serve
+
+# Start Reverb websocket server
+php artisan reverb:start
+
+# (Optional) Vite dev server for hot reload
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; npm run dev
+
+# If broadcasting uses queued jobs, run a queue worker
+php artisan queue:work

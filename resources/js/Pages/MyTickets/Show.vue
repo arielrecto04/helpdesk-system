@@ -180,6 +180,9 @@
                     </div>
                 </div>
 
+                <!-- Chat Component -->
+                <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+
                 <Modal :show="confirmingMyTicketDeletion" @close="closeModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900">
@@ -213,11 +216,16 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TicketChat from '@/Components/TicketChat.vue';
 
 const props = defineProps({
     ticket: {
         type: Object,
         required: true
+    },
+    messages: {
+        type: Array,
+        default: () => []
     }
 });
 

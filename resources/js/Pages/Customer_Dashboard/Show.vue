@@ -2,10 +2,12 @@
 import { Head, router } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
+import TicketChat from '@/Components/TicketChat.vue';
 import { ref } from 'vue';
 
 const page = usePage();
 const ticket = page.props.ticket;
+const messages = page.props.messages || [];
 
 const showProfileModal = ref(false);
 const isSidebarOpen = ref(true);
@@ -229,6 +231,10 @@ const logout = () => router.post(route('logout'));
             </div>
           </div>
         </div>
+
+        <!-- Chat Component -->
+        <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+
       </div>
     </main>
 

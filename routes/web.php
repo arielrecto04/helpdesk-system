@@ -15,6 +15,7 @@ use App\Http\Controllers\PositionsController;
 use App\Http\Controllers\TagsController;
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TicketMessageController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -138,6 +139,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit')->middleware('permission:edit_roles');
     Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update')->middleware('permission:edit_roles');
     Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy')->middleware('permission:delete_roles');
+
+    // Ticket Messages Routes
+    Route::get('/tickets/{ticket}/messages', [TicketMessageController::class, 'index'])->name('ticket.messages.index');
+    Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])->name('ticket.messages.store');
 
 });
 

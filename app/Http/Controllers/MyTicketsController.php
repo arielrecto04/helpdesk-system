@@ -138,8 +138,14 @@ class MyTicketsController extends Controller
         $ticket->load(['customer', 'assignedTo', 'team', 'tags']);
         $ticket->assigned_employee_name = $ticket->assignedTo ? $ticket->assignedTo->first_name . ' ' . $ticket->assignedTo->last_name : null;
 
+        $perPage = 20;
+        $latest = $ticket->messages()->with('user')->orderBy('created_at', 'desc')->take($perPage)->get()->reverse()->values();
+        $messagesCount = $ticket->messages()->count();
+
         return Inertia::render('MyTickets/Show', [
             'ticket' => $ticket,
+            'messages' => $latest,
+            'messages_count' => $messagesCount,
         ]);
     }
 
