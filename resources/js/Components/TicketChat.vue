@@ -16,9 +16,9 @@ const currentUser = usePage().props.auth.user;
 const formMessage = ref('');
 
 // --- Upload & Drag State ---
-const attachment = ref(null);      // The actual File object
-const attachmentPreview = ref(null); // The blob URL for preview
-const isDragging = ref(false);     // UI state for drop zone
+const attachment = ref(null);      
+const attachmentPreview = ref(null); 
+const isDragging = ref(false);     
 
 // --- Existing State ---
 const typingUsers = ref([]);
@@ -42,6 +42,10 @@ const callStatus = ref('idle'); // idle, initiating, ringing, connected, ended
 const isMuted = ref(false);
 const isVideoOff = ref(false);
 const incomingCall = ref(null);
+
+// --- WebRTC Signaling State ---
+const pendingOffer = ref(null);
+const candidateQueue = ref([]);
 
 const configuration = {
     iceServers: [
@@ -87,7 +91,6 @@ const processFile = (file) => {
         showToast("Only image files are allowed.");
         return;
     }
-    // Create a local preview URL
     attachment.value = file;
     attachmentPreview.value = URL.createObjectURL(file);
 };
@@ -95,7 +98,7 @@ const processFile = (file) => {
 const removeAttachment = () => {
     attachment.value = null;
     attachmentPreview.value = null;
-    if (fileInput.value) fileInput.value.value = ''; // Reset input
+    if (fileInput.value) fileInput.value.value = ''; 
 };
 
 // --- Messaging Logic ---
@@ -119,13 +122,12 @@ const submitMessage = async () => {
 
     const tempId = `temp-${Date.now()}`;
     
-    // Optimistic Message Object
     const tempMessage = {
         id: tempId,
         ticket_id: props.ticketId,
         user_id: currentUser.id,
         message: text,
-        attachment_url: attachmentPreview.value, // Display local blob immediately
+        attachment_url: attachmentPreview.value, 
         created_at: new Date().toISOString(),
         user: { id: currentUser.id, name: currentUser.name },
         optimistic: true,
@@ -134,13 +136,11 @@ const submitMessage = async () => {
     messages.value.push(tempMessage);
     scrollToBottom(true);
     
-    // Reset Form Immediately
     formMessage.value = '';
-    const fileToSend = attachment.value; // capture before reset
+    const fileToSend = attachment.value; 
     removeAttachment();
 
     try {
-        // Prepare FormData for file upload
         const formData = new FormData();
         if (text) formData.append('message', text);
         if (fileToSend) formData.append('attachment', fileToSend);
@@ -150,14 +150,11 @@ const submitMessage = async () => {
         });
         
         const realMessage = res.data;
-
-        // Swap optimistic message with real one
         const idx = messages.value.findIndex(m => m.id === tempId);
         if (idx !== -1) messages.value.splice(idx, 1, realMessage);
         else messages.value.push(realMessage);
 
     } catch (err) {
-        // Remove optimistic message on failure
         const idx = messages.value.findIndex(m => m.id === tempId);
         if (idx !== -1) messages.value.splice(idx, 1);
         console.error(err);
@@ -201,28 +198,30 @@ const showToast = (msg = '') => {
 const startCall = async (type) => {
     try {
         callStatus.value = 'initiating';
+        // Reset queues
+        candidateQueue.value = [];
+        pendingOffer.value = null;
+
         console.log('[Call] startCall invoked', { type, ticketId: props.ticketId });
-        
+
         const response = await axios.post(route('ticket.calls.start', props.ticketId), {
             call_type: type,
         });
         
         activeCall.value = response.data;
         
-        try {
-            console.log('[Call] Requesting getUserMedia', { audio: true, video: type === 'video' });
-            localStream.value = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: type === 'video',
-            });
-            console.log('[Call] getUserMedia success', localStream.value);
-        } catch (gumErr) {
-            console.error('[Call] getUserMedia failed', gumErr);
-            throw gumErr;
-        }
+        console.log('[Call] Requesting getUserMedia');
+        localStream.value = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: type === 'video',
+        });
+        console.log('[Call] getUserMedia success');
         
+        // Use nextTick to ensure the video element exists in DOM
+        await nextTick();
         if (localVideo.value) {
             localVideo.value.srcObject = localStream.value;
+            localVideo.value.muted = true; // Always mute local video to prevent feedback
         }
         
         await createPeerConnection();
@@ -248,7 +247,7 @@ const startCall = async (type) => {
         
     } catch (error) {
         console.error('Error starting call:', error);
-        showToast('Failed to start call. Please check your permissions.');
+        showToast('Failed to start call. Please check permissions.');
         endCall();
     }
 };
@@ -257,17 +256,23 @@ const answerCall = async () => {
     if (!incomingCall.value) return;
     
     try {
-        callStatus.value = 'initiating';
+        // Promote incoming call to active call
         activeCall.value = incomingCall.value;
         incomingCall.value = null;
-        
+        callStatus.value = 'initiating';
+        candidateQueue.value = []; // Reset queue
+
+        // Get user media
         localStream.value = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: activeCall.value.call_type === 'video',
         });
         
+        // Wait for DOM update so ref is available
+        await nextTick();
         if (localVideo.value) {
             localVideo.value.srcObject = localStream.value;
+            localVideo.value.muted = true;
         }
         
         await createPeerConnection();
@@ -275,6 +280,11 @@ const answerCall = async () => {
         localStream.value.getTracks().forEach(track => {
             peerConnection.value.addTrack(track, localStream.value);
         });
+
+        // **CRITICAL FIX**: Process the pending offer if it exists
+        if (pendingOffer.value) {
+            await handleRemoteOffer(pendingOffer.value);
+        }
         
         await axios.patch(route('ticket.calls.status', {
             ticket: props.ticketId,
@@ -287,9 +297,38 @@ const answerCall = async () => {
         
     } catch (error) {
         console.error('Error answering call:', error);
-        showToast('Failed to answer call. Please check your permissions.');
+        showToast('Failed to answer call.');
         declineCall();
     }
+};
+
+const handleRemoteOffer = async (offerData) => {
+    if (!peerConnection.value) return;
+    
+    await peerConnection.value.setRemoteDescription(new RTCSessionDescription(offerData));
+    
+    // Flush any queued candidates now that remote description is set
+    while (candidateQueue.value.length > 0) {
+        const candidate = candidateQueue.value.shift();
+        try {
+            await peerConnection.value.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (e) {
+            console.error('Error adding queued ICE candidate', e);
+        }
+    }
+
+    const answer = await peerConnection.value.createAnswer();
+    await peerConnection.value.setLocalDescription(answer);
+    
+    await axios.post(route('ticket.calls.answer', {
+        ticket: props.ticketId,
+        messageId: activeCall.value.id
+    }), {
+        answer: {
+            type: answer.type,
+            sdp: answer.sdp,
+        }
+    });
 };
 
 const declineCall = async () => {
@@ -303,6 +342,7 @@ const declineCall = async () => {
     });
     
     incomingCall.value = null;
+    pendingOffer.value = null;
 };
 
 const endCall = async () => {
@@ -333,6 +373,9 @@ const endCall = async () => {
     }
     
     activeCall.value = null;
+    incomingCall.value = null;
+    pendingOffer.value = null;
+    candidateQueue.value = [];
     callStatus.value = 'idle';
     isMuted.value = false;
     isVideoOff.value = false;
@@ -342,16 +385,13 @@ const createPeerConnection = async () => {
     peerConnection.value = new RTCPeerConnection(configuration);
     
     peerConnection.value.ontrack = (event) => {
-        if (!remoteStream.value) {
-            remoteStream.value = new MediaStream();
-            if (remoteVideo.value) {
-                remoteVideo.value.srcObject = remoteStream.value;
-            }
-            if (remoteAudio.value) {
-                remoteAudio.value.srcObject = remoteStream.value;
-            }
-        }
-        remoteStream.value.addTrack(event.track);
+        remoteStream.value = event.streams[0];
+        
+        // Ensure remote video/audio elements are attached
+        nextTick(() => {
+            if (remoteVideo.value) remoteVideo.value.srcObject = remoteStream.value;
+            if (remoteAudio.value) remoteAudio.value.srcObject = remoteStream.value;
+        });
     };
     
     peerConnection.value.onicecandidate = async (event) => {
@@ -404,28 +444,12 @@ const toggleVideo = () => {
 };
 
 onMounted(() => {
-    console.log('[TicketChat] mounted', { ticketId: props.ticketId });
     scrollToBottom(true);
 
-    if (!window.Echo) {
-        console.error('[TicketChat] window.Echo is not available');
-        return;
-    }
+    if (!window.Echo) return;
 
-    try {
-        console.log('[TicketChat] Echo exists', { socketId: window.Echo.socketId ? window.Echo.socketId() : null, echo: window.Echo });
-    } catch (err) {
-        console.warn('[TicketChat] Echo socketId() threw', err);
-    }
-
-    const channel = Echo.private(`ticket.${props.ticketId}`);
-    console.log('[TicketChat] subscribed to channel', channel);
-
-    channel
+    Echo.private(`ticket.${props.ticketId}`)
         .listen('NewMessageEvent', (e) => {
-            try {
-                console.log('[Echo] NewMessageEvent', e?.message);
-            } catch {}
             if (!messages.value.find(m => m.id === e.message.id)) {
                 messages.value.push(e.message);
                 scrollToBottom(false);
@@ -433,39 +457,44 @@ onMounted(() => {
                 // Check if it's an incoming call
                 if (e.message.call_type && e.message.user_id !== currentUser.id && e.message.call_status === 'initiated') {
                     incomingCall.value = e.message;
+                    // Reset call state for new incoming call
+                    pendingOffer.value = null;
+                    candidateQueue.value = [];
+                } else if (e.message.call_status === 'ended' && activeCall.value && e.message.id === activeCall.value.id) {
+                    endCall();
                 }
             }
         })
         .listen('CallSignalingEvent', async (e) => {
-            try {
-                console.log('[Echo] CallSignalingEvent', { type: e?.type, message_id: e?.message_id });
-            } catch {}
-            if (e.sender_id === currentUser.id || !activeCall.value) return;
+            if (e.sender_id === currentUser.id) return;
             
-            if (!peerConnection.value) {
-                await createPeerConnection();
+            // Handle Offer - store it regardless of activeCall state
+            if (e.type === 'offer') {
+                console.log('[Signaling] Offer received');
+                pendingOffer.value = e.data;
+                // If we already started initializing the peer connection (rare), handle it
+                if (peerConnection.value && peerConnection.value.signalingState === 'stable') {
+                    await handleRemoteOffer(e.data);
+                }
+                return;
             }
-            
+
+            // For Answer and ICE, we need an active peer connection
+            if (!peerConnection.value) return;
+
             try {
-                if (e.type === 'offer') {
-                    await peerConnection.value.setRemoteDescription(new RTCSessionDescription(e.data));
-                    const answer = await peerConnection.value.createAnswer();
-                    await peerConnection.value.setLocalDescription(answer);
-                    
-                    await axios.post(route('ticket.calls.answer', {
-                        ticket: props.ticketId,
-                        messageId: e.message_id
-                    }), {
-                        answer: {
-                            type: answer.type,
-                            sdp: answer.sdp,
-                        }
-                    });
-                } else if (e.type === 'answer') {
+                 if (e.type === 'answer') {
+                    console.log('[Signaling] Answer received');
                     await peerConnection.value.setRemoteDescription(new RTCSessionDescription(e.data));
                     callStatus.value = 'connected';
                 } else if (e.type === 'ice') {
-                    await peerConnection.value.addIceCandidate(new RTCIceCandidate(e.data));
+                    console.log('[Signaling] ICE Candidate received');
+                    // Queue candidate if remote description is not set yet
+                    if (!peerConnection.value.remoteDescription) {
+                        candidateQueue.value.push(e.data);
+                    } else {
+                        await peerConnection.value.addIceCandidate(new RTCIceCandidate(e.data));
+                    }
                 }
             } catch (error) {
                 console.error('Error handling signaling:', error);
@@ -484,9 +513,10 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-    // Cleanup when component unmounts
     endCall();
-    Echo.leave(`ticket.${props.ticketId}`);
+    if (window.Echo) {
+        Echo.leave(`ticket.${props.ticketId}`);
+    }
 });
 </script>
 
@@ -510,7 +540,6 @@ onUnmounted(() => {
                 <p class="text-xs text-gray-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Online</p>
             </div>
             
-            <!-- Call Controls -->
             <div v-if="callStatus === 'idle'" class="flex gap-2">
                 <button @click="startCall('voice')" class="p-2 hover:bg-gray-200 rounded-full transition" title="Voice Call">
                     <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,7 +581,6 @@ onUnmounted(() => {
             </div>
         </div>
         
-        <!-- Incoming Call Modal -->
         <div v-if="incomingCall" class="absolute inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
             <div class="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center shadow-2xl">
                 <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
@@ -574,7 +602,6 @@ onUnmounted(() => {
             </div>
         </div>
         
-        <!-- Video Call UI -->
         <div v-if="activeCall?.call_type === 'video' && callStatus !== 'idle'" class="absolute inset-0 bg-gray-900 z-40">
             <video ref="remoteVideo" autoplay playsinline class="w-full h-full object-cover"></video>
             <div class="absolute bottom-4 right-4 w-40 h-28 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white">
@@ -588,7 +615,6 @@ onUnmounted(() => {
             </div>
         </div>
         
-        <!-- Audio Call UI (hidden audio element) -->
         <audio v-if="activeCall?.call_type === 'voice'" ref="remoteAudio" autoplay class="hidden"></audio>
 
         <div ref="messageContainer" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4 z-10">
