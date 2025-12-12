@@ -18,7 +18,8 @@ class PositionSeeder extends Seeder
                 'Senior Developer',
                 'Junior Developer',
                 'System Administrator',
-                'Network Engineer',
+                'Software Support',
+                'Technical Support Specialist',
                 'Quality Assurance Engineer',
                 'Data Analyst'
             ],

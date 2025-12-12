@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             PositionSeeder::class,
             HelpdeskTeamSeeder::class,
             CompanySeeder::class,
-            RolePermissionSeeder::class, // Run this before UserSeeder so roles exist
+            RolePermissionSeeder::class,
             UserSeeder::class, 
             EmployeeSeeder::class,
             EmployeeHelpdeskTeamSeeder::class,

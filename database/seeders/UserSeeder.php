@@ -15,8 +15,17 @@ class UserSeeder extends Seeder
     public function run(): void
     {
 
-        $adminRole = Role::where('name', 'admin')->first();
-        $agentRole = Role::where('name', 'agent')->first();
+        // Support role names created by RolePermissionSeeder such as
+        // 'Admin' and location-specific agent roles like 'Agent (Cebu)'.
+        $adminRole = Role::where('name', 'admin')
+            ->orWhere('name', 'Admin')
+            ->first();
+
+        $agentRole = Role::where(function ($q) {
+            $q->where('name', 'agent')
+              ->orWhere('name', 'Agent')
+              ->orWhere('name', 'like', 'Agent%');
+        })->first();
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@helpdesk.com'],

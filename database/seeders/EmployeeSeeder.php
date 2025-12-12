@@ -22,42 +22,41 @@ class EmployeeSeeder extends Seeder
             $this->command->error('Walang nahanap na kumpanya. Paki-run muna ang CompanySeeder.');
             return;
         }
-
         $employeesData = [
             [
-                'first_name' => 'Support',
-                'middle_name' => 'Agent',
-                'last_name' => 'Agent 1',
-                'email' => 'agent1@helpdesk.com',
-                'phone_number' => '123-456-7890'
+                'first_name' => 'Johnny',
+                'middle_name' => null,
+                'last_name' => 'Bravo',
+                'email' => 'johnny.bravo@example.com',
+                'phone_number' => '0917-000-0001'
             ],
             [
-                'first_name' => 'Support',
-                'middle_name' => 'Agent',
-                'last_name' => 'Agent 2',
-                'email' => 'agent2@helpdesk.com',
-                'phone_number' => '123-456-7891'
+                'first_name' => 'Tony',
+                'middle_name' => 'Edward',
+                'last_name' => 'Stark',
+                'email' => 'tony.stark@example.com',
+                'phone_number' => '0917-000-0002'
             ],
             [
-                'first_name' => 'Support',
-                'middle_name' => 'Agent',
-                'last_name' => 'Agent 3',
-                'email' => 'agent3@helpdesk.com',
-                'phone_number' => '123-456-7892'
+                'first_name' => 'Bruce',
+                'middle_name' => null,
+                'last_name' => 'Wayne',
+                'email' => 'bruce.wayne@example.com',
+                'phone_number' => '0917-000-0003'
             ],
             [
-                'first_name' => 'Support',
-                'middle_name' => 'Agent',
-                'last_name' => 'Agent 4',
-                'email' => 'agent4@helpdesk.com',
-                'phone_number' => '123-456-7893'
+                'first_name' => 'Homer',
+                'middle_name' => null,
+                'last_name' => 'Simpson',
+                'email' => 'homer.simpson@example.com',
+                'phone_number' => '0917-000-0004'
             ],
             [
-                'first_name' => 'Support',
-                'middle_name' => 'Agent',
-                'last_name' => 'Agent 5',
-                'email' => 'agent5@helpdesk.com',
-                'phone_number' => '123-456-7894'
+                'first_name' => 'Lara',
+                'middle_name' => null,
+                'last_name' => 'Croft',
+                'email' => 'lara.croft@example.com',
+                'phone_number' => '0917-000-0005'
             ]
         ];
 
@@ -65,11 +64,9 @@ class EmployeeSeeder extends Seeder
 
             $department = $departments->random();
             $position = $department->positions->random();
-
             $employee = Employee::where('email', $data['email'])->first();
             
             if ($employee) {
-                // Update existing employee without changing employee_code
                 $employee->update([
                     'first_name' => $data['first_name'],
                     'middle_name' => $data['middle_name'] ?? null,
@@ -80,7 +77,7 @@ class EmployeeSeeder extends Seeder
                     'company_id' => $companyIds->random()
                 ]);
             } else {
-                // Create new employee with unique code
+
                 $maxId = Employee::max('id') ?? 0;
                 Employee::create([
                     'email' => $data['email'],

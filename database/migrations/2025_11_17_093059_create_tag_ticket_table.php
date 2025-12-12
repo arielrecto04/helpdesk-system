@@ -12,14 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tag_ticket', function (Blueprint $table) {
-            // Foreign key para sa 'tags' table
-            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
-            
-            // Foreign key para sa 'tickets' table
-            $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
 
-            // Siguraduhin na ang isang tag ay hindi pwedeng ilagay
-            // nang paulit-ulit sa iisang ticket
+            $table->foreignId('tag_id')->constrained()->onDelete('cascade');
+            $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->primary(['tag_id', 'ticket_id']);
         });
     }

@@ -204,7 +204,6 @@ class TicketSeeder extends Seeder
             $ticketData['customer_id'] = $customers->random()->id;
             $ticketData['team_id'] = $teams->random()->id;
 
-            // If ticket is Resolved/Closed, ensure it has an assignee and closed_at (if column exists)
             if (in_array($ticketData['stage'], ['Resolved', 'Closed'])) {
                 $ticketData['assigned_to_employee_id'] = $agents->random()->id;
                 if ($hasClosedAt) {
@@ -217,7 +216,6 @@ class TicketSeeder extends Seeder
             }
 
             $newTicket = Ticket::create($ticketData);
-
             $randomTagIds = $tagIds->random(rand(1, min(3, $tagIds->count())));
             $newTicket->tags()->attach($randomTagIds);
         }

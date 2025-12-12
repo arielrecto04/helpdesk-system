@@ -13,16 +13,16 @@ class TagSeeder extends Seeder
     {
 
         $tags = [
-            'odoo 18',
-            'odoo 19',
-            'workspace',
-            'laptop',
-            'server',
-            'printer',
-            'network issue',
-            'software bug',
-            'password reset',
-            'email problem'
+            'Odoo 18',
+            'Odoo 19',
+            'Workspace',
+            'Laptop',
+            'Server',
+            'Printer',
+            'Network Issue',
+            'Software Bug',
+            'Password Reset',
+            'Email Problem'
         ];
 
         foreach ($tags as $tagName) {

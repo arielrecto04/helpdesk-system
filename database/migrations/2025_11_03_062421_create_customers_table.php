@@ -21,9 +21,7 @@ return new class extends Migration
             $table->string('phone_number', 20)->nullable();
             $table->timestamps();
             $table->foreignId('company_id')->nullable()->constrained('companies')->onDelete('cascade');
-            // Link customer to an optional user account
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-
         });
     }
     /**

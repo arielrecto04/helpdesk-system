@@ -143,6 +143,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Ticket Messages Routes
     Route::get('/tickets/{ticket}/messages', [TicketMessageController::class, 'index'])->name('ticket.messages.index');
     Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])->name('ticket.messages.store');
+    
+    // Call Routes
+    Route::post('/tickets/{ticket}/calls', [TicketMessageController::class, 'startCall'])->name('ticket.calls.start');
+    Route::put('/tickets/{ticket}/calls/{messageId}', [TicketMessageController::class, 'endCall'])->name('ticket.calls.end');
+    Route::patch('/tickets/{ticket}/calls/{messageId}/status', [TicketMessageController::class, 'updateCallStatus'])->name('ticket.calls.status');
+    
+    // WebRTC Signaling Routes
+    Route::post('/tickets/{ticket}/calls/{messageId}/offer', [TicketMessageController::class, 'sendOffer'])->name('ticket.calls.offer');
+    Route::post('/tickets/{ticket}/calls/{messageId}/answer', [TicketMessageController::class, 'sendAnswer'])->name('ticket.calls.answer');
+    Route::post('/tickets/{ticket}/calls/{messageId}/ice', [TicketMessageController::class, 'sendIce'])->name('ticket.calls.ice');
 
 });
 

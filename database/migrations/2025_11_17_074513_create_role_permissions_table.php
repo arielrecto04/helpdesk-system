@@ -10,20 +10,16 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-{
-    Schema::create('role_permissions', function (Blueprint $table) {
-        // Foreign key para sa roles table
-        $table->unsignedBigInteger('role_id');
-        $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
+    {
+        Schema::create('role_permissions', function (Blueprint $table) {
 
-        // Foreign key para sa permissions table
-        $table->unsignedBigInteger('permission_id');
-        $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
-
-        // Composite primary key
-        $table->primary(['role_id', 'permission_id']);
-    });
-}
+            $table->unsignedBigInteger('role_id');
+            $table->foreign('role_id')->references('id')->on('roles')->onDelete('cascade');
+            $table->unsignedBigInteger('permission_id');
+            $table->foreign('permission_id')->references('id')->on('permissions')->onDelete('cascade');
+            $table->primary(['role_id', 'permission_id']);
+        });
+    }
     /**
      * Reverse the migrations.
      */

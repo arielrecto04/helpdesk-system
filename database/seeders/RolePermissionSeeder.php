@@ -121,9 +121,6 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'can_view_other_teams_tickets', 'description' => 'Can view tickets for other teams'],
             ['name' => 'can_view_other_users_tickets', 'description' => 'Can view tickets for other users'],
 
-            ['name' => 'send_ticket_on_customer_dashboard', 'description' => 'Can send/create a public ticket'],
-            ['name' => 'edit_sent_ticket_on_customer_dashboard', 'description' => 'Can edit tickets they sent'],
-            ['name' => 'delete_sent_ticket_on_customer_dashboard', 'description' => 'Can delete tickets they sent'],
         ];
 
         // Create all permissions (idempotent)
@@ -144,13 +141,7 @@ class RolePermissionSeeder extends Seeder
             'view_customers_menu', 'show_customers', 'create_customers', 'edit_customers',
         ];
 
-        // Helpdesk permissions: only use permission names from the approved list
-        $helpdeskPermissions = [
-            'view_dashboard', 'view_profile',
-            'view_mytickets_menu', 'show_mytickets', 'edit_mytickets',
-            'view_alltickets_menu', 'show_alltickets',
-            'can_view_other_teams_tickets', 'can_view_other_users_tickets',
-        ];
+        // (Removed helpdesk role) — agents will be created per location below.
 
         $adminPermissions = [
             'view_dashboard', 'view_profile',
@@ -175,58 +166,44 @@ class RolePermissionSeeder extends Seeder
             
         ];
 
-        // Super Admin Role (all permissions)
-        $superAdminRole = Role::firstOrCreate(
-            ['name' => 'super-admin'], 
-            ['description' => 'Has all permissions in the system']
-        );
-        $allPermissionIds = Permission::pluck('id');
-        $superAdminRole->permissions()->sync($allPermissionIds);
-        $this->command->info('super-admin role created with all permissions.');
-
         // Admin Role
         $adminRole = Role::firstOrCreate(
-            ['name' => 'admin'],
+            ['name' => 'Admin'],
             ['description' => 'Administrator with broad management permissions']
         );
         $adminPermissionIds = Permission::whereIn('name', $adminPermissions)->pluck('id');
         $adminRole->permissions()->sync($adminPermissionIds);
-        $this->command->info('admin role created and permissions assigned.');
+        $this->command->info('Admin role created and permissions assigned.');
 
-        // Agent Role
-        $agentRole = Role::firstOrCreate(
-            ['name' => 'agent'], 
-            ['description' => 'Handles customer tickets and profiles']
-        );
+        // Agent Roles per location
+        $agentLocations = [
+            'Agent (Cebu)',
+            'Agent (Laguna)',
+            'Agent (Parañaque)'
+        ];
+
         $agentPermissionIds = Permission::whereIn('name', $agentPermissions)->pluck('id');
-        $agentRole->permissions()->sync($agentPermissionIds);
-        $this->command->info('agent role created and permissions assigned.');
-
-        // Helpdesk Role
-        $helpdeskRole = Role::firstOrCreate(
-            ['name' => 'helpdesk'], 
-            ['description' => 'Standard user with basic ticket access']
-        );
-        $helpdeskPermissionIds = Permission::whereIn('name', $helpdeskPermissions)->pluck('id');
-        $helpdeskRole->permissions()->sync($helpdeskPermissionIds);
-        $this->command->info('helpdesk role created and permissions assigned.');
+        foreach ($agentLocations as $agentName) {
+            $role = Role::firstOrCreate(
+                ['name' => $agentName],
+                ['description' => 'Agent handling tickets for a specific location']
+            );
+            $role->permissions()->sync($agentPermissionIds);
+            $this->command->info($agentName . ' role created and permissions assigned.');
+        }
 
         // Customer Role (public end users of the system)
         $customerPermissions = [
-            'view_customer_dashboard','send_ticket_on_customer_dashboard', 'edit_sent_ticket_on_customer_dashboard','delete_sent_ticket_on_customer_dashboard'
+            'view_customer_dashboard'
         ];
 
-        // Try to find existing role case-insensitively (to avoid duplicate 'Customer' vs 'customer')
-        $customerRole = Role::whereRaw('LOWER(name) = ?', ['customer'])->first();
-        if (! $customerRole) {
-            $customerRole = Role::firstOrCreate(
-                ['name' => 'customer'],
-                ['description' => 'End user who can create and track tickets']
-            );
-        }
+        $customerRole = Role::firstOrCreate(
+            ['name' => 'Customer'],
+            ['description' => 'End user who can create and track tickets']
+        );
 
         $customerPermissionIds = Permission::whereIn('name', $customerPermissions)->pluck('id');
         $customerRole->permissions()->sync($customerPermissionIds);
-        $this->command->info('customer role created and permissions assigned.');
+        $this->command->info('Customer role created and permissions assigned.');
     }
 }

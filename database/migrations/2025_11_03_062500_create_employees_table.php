@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Company;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -19,7 +18,6 @@ return new class extends Migration
             $table->string('first_name', 100);
             $table->string('middle_name', 100)->nullable();
             $table->string('last_name', 100);
-
             $table->string('email', 255)->unique();
             $table->string('phone_number', 20)->nullable();
             $table->unsignedBigInteger('department_id')->nullable();
@@ -35,7 +33,6 @@ return new class extends Migration
                   ->references('id')
                   ->on('users')
                   ->onDelete('set null');
-
             $table->foreign('department_id')
                   ->references('id')
                   ->on('departments')
