@@ -16,6 +16,8 @@ use App\Http\Controllers\TagsController;
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TicketMessageController;
+use App\Http\Controllers\TicketAnalysisController;
+use App\Http\Controllers\CustomerRatingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -36,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/customer/dashboard', [CustomerDashboardController::class, 'index'])->name('customer.dashboard');
     Route::post('/customer/tickets', [CustomerDashboardController::class, 'storeTicket'])->name('customer.tickets.store');
     Route::get('/customer/tickets/{ticket}', [CustomerDashboardController::class, 'showTicket'])->name('customer.tickets.show');
+    Route::post('/customer/tickets/{ticket}/rating', [CustomerDashboardController::class, 'storeRating'])->name('customer.tickets.rating');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:view_dashboard');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit')->middleware('permission:view_profile');
@@ -53,6 +56,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/alltickets', [AllTicketsController::class, 'index'])->name('alltickets.index')->middleware('permission:show_alltickets');
     Route::get('/alltickets/create', [AllTicketsController::class, 'create'])->name('alltickets.create')->middleware('permission:create_alltickets');
     Route::post('/alltickets', [AllTicketsController::class, 'store'])->name('alltickets.store')->middleware('permission:create_alltickets');
+    Route::post('/alltickets/bulk-update', [AllTicketsController::class, 'bulkUpdate'])->name('alltickets.bulk-update')->middleware('permission:edit_alltickets');
+    Route::post('/alltickets/bulk-delete', [AllTicketsController::class, 'bulkDelete'])->name('alltickets.bulk-delete')->middleware('permission:delete_alltickets');
     Route::get('/alltickets/{ticket}', [AllTicketsController::class, 'show'])->name('alltickets.show')->middleware('permission:show_alltickets');
     Route::get('/alltickets/{ticket}/edit', [AllTicketsController::class, 'edit'])->name('alltickets.edit')->middleware('permission:edit_alltickets');
     Route::put('/alltickets/{ticket}', [AllTicketsController::class, 'update'])->name('alltickets.update')->middleware('permission:edit_alltickets');
@@ -144,15 +149,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/tickets/{ticket}/messages', [TicketMessageController::class, 'index'])->name('ticket.messages.index');
     Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])->name('ticket.messages.store');
     
-    // Call Routes
-    Route::post('/tickets/{ticket}/calls', [TicketMessageController::class, 'startCall'])->name('ticket.calls.start');
-    Route::put('/tickets/{ticket}/calls/{messageId}', [TicketMessageController::class, 'endCall'])->name('ticket.calls.end');
-    Route::patch('/tickets/{ticket}/calls/{messageId}/status', [TicketMessageController::class, 'updateCallStatus'])->name('ticket.calls.status');
+    // Ticket Analysis Routes
+    Route::get('/ticket-analysis', [TicketAnalysisController::class, 'index'])->name('ticket.analysis')->middleware('permission:view_ticket_analysis_menu');
+    Route::get('/ticket-analysis/export', [TicketAnalysisController::class, 'export'])->name('ticket.analysis.export')->middleware('permission:view_ticket_analysis_menu');
     
-    // WebRTC Signaling Routes
-    Route::post('/tickets/{ticket}/calls/{messageId}/offer', [TicketMessageController::class, 'sendOffer'])->name('ticket.calls.offer');
-    Route::post('/tickets/{ticket}/calls/{messageId}/answer', [TicketMessageController::class, 'sendAnswer'])->name('ticket.calls.answer');
-    Route::post('/tickets/{ticket}/calls/{messageId}/ice', [TicketMessageController::class, 'sendIce'])->name('ticket.calls.ice');
+    // Customer Ratings Routes
+    Route::get('/customer-ratings', [CustomerRatingsController::class, 'index'])->name('customer-ratings.index')->middleware('permission:view_customer_ratings_menu');
+    Route::get('/customer-ratings/{rating}', [CustomerRatingsController::class, 'show'])->name('customer-ratings.show')->middleware('permission:view_customer_ratings_menu');
+    
 
 });
 

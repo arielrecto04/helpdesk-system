@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             TagSeeder::class,
             TicketSeeder::class,
+            CustomerRatingSeeder::class, // Add customer ratings after tickets
         ]);
     }
 }

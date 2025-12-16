@@ -66,6 +66,14 @@ class Ticket extends Model
         return $this->belongsTo(Employee::class, 'assigned_to_employee_id');
     }
 
+    /**
+     * Backwards-compatible alias for the assigned employee relation.
+     */
+    public function assignedEmployee()
+    {
+        return $this->belongsTo(Employee::class, 'assigned_to_employee_id');
+    }
+
     public function tags()
     {
         return $this->belongsToMany(Tag::class, 'tag_ticket');
@@ -84,30 +92,36 @@ class Ticket extends Model
      *   matches the current employee's `company_id` will be included.
      * - can_view_other_teams_tickets: Only tickets that belong to the user's helpdesk teams will be included.
      * - can_view_other_users_tickets: Only tickets assigned to the current employee will be included.
+     * - can_view_tickets_even_not_employee: REQUIRED to view tickets without an Employee record.
      *
      * Note: Unassigned tickets are excluded when any of the above restrictions apply,
      * as they are not assigned to a specific employee/location.
      */
     public function scopeVisibleTo($query, User $user)
     {
-        // If user has all three permissions enabled, show everything
-        $hasAllViewPerms = $user->hasPermissionTo('can_view_other_locations_tickets')
-            && $user->hasPermissionTo('can_view_other_teams_tickets')
-            && $user->hasPermissionTo('can_view_other_users_tickets');
-
-        if ($hasAllViewPerms) {
-            return $query;
-        }
-
         // Prefer linked employee by user_id, fall back to email
         $employee = Employee::where('user_id', $user->id)->with(['company', 'helpdeskTeams'])->first();
         if (! $employee && $user->email) {
             $employee = Employee::where('email', $user->email)->with(['company', 'helpdeskTeams'])->first();
         }
 
+        // If no employee record exists
         if (! $employee) {
-            // If user has no employee record, show nothing by default
+            // Special permission: can view tickets even without Employee record
+            if ($user->hasPermissionTo('can_view_tickets_even_not_employee')) {
+                return $query;
+            }
+            // Otherwise, show nothing
             return $query->whereNull('id');
+        }
+
+        // Employee exists - check if user has all three permissions for unrestricted access
+        $hasAllViewPerms = $user->hasPermissionTo('can_view_other_locations_tickets')
+            && $user->hasPermissionTo('can_view_other_teams_tickets')
+            && $user->hasPermissionTo('can_view_other_users_tickets');
+
+        if ($hasAllViewPerms) {
+            return $query;
         }
 
         $restrictByLocation = ! $user->hasPermissionTo('can_view_other_locations_tickets');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ticket;
 use App\Models\HelpdeskTeam;
+use App\Models\CustomerRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -65,11 +66,69 @@ class CustomerDashboardController extends Controller
         $latest = $ticket->messages()->with('user')->orderBy('created_at', 'desc')->take($perPage)->get()->reverse()->values();
         $messagesCount = $ticket->messages()->count();
 
+        // Check if this customer already submitted a rating for this ticket
+        $existingRating = null;
+        if ($customer) {
+            $existingRating = CustomerRating::where('ticket_id', $ticket->id)
+                ->where('customer_id', $customer->id)
+                ->first();
+        }
+
+        $canRate = in_array($ticket->stage, ['Resolved', 'Closed']) && ! $existingRating;
+
         return Inertia::render('Customer_Dashboard/Show', [
             'ticket' => $ticket,
             'messages' => $latest,
             'messages_count' => $messagesCount,
+            'can_rate' => $canRate,
+            'existing_rating' => $existingRating ? [
+                'id' => $existingRating->id,
+                'rating' => $existingRating->rating,
+                'comment' => $existingRating->comment,
+                'submitted_on' => $existingRating->submitted_on ? $existingRating->submitted_on->format('Y-m-d H:i') : null,
+            ] : null,
         ]);
+    }
+
+    /**
+     * Store a customer rating for a ticket (customer-facing).
+     */
+    public function storeRating(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $user = Auth::user();
+        $customer = $user ? $user->customer : null;
+
+        if (! $customer || $ticket->customer_id !== $customer->id) {
+            abort(403, 'Unauthorized.');
+        }
+
+        // Only allow rating when ticket is resolved/closed
+        if (! in_array($ticket->stage, ['Resolved', 'Closed'])) {
+            return redirect()->back()->with('error', 'Ticket must be resolved before rating.');
+        }
+
+        // Prevent duplicate ratings
+        $exists = CustomerRating::where('ticket_id', $ticket->id)->where('customer_id', $customer->id)->exists();
+        if ($exists) {
+            return redirect()->back()->with('message', 'You have already rated this ticket.');
+        }
+
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ]);
+
+        CustomerRating::create([
+            'ticket_id' => $ticket->id,
+            'customer_id' => $customer->id,
+            'assigned_to_employee_id' => $ticket->assigned_to_employee_id,
+            'team_id' => $ticket->team_id,
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
+            'submitted_on' => now(),
+        ]);
+
+        return redirect()->back()->with('message', 'Thank you for your rating.');
     }
     /**
      * Store a ticket submitted by a customer through the customer dashboard.

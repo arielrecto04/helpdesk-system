@@ -10,13 +10,16 @@ class CustomerRating extends Model
 {
     use HasFactory;
 
+    // Use Eloquent's timestamps now that the migration includes them.
+
     protected $fillable = [
         'ticket_id',
         'customer_id',
         'assigned_to_employee_id',
         'team_id',
         'rating',
-        'comment'
+        'comment',
+        'submitted_on'
     ];
 
     protected $casts = [

@@ -36,10 +36,10 @@ if (userPermissions.includes('view_alltickets_menu') || userPermissions.includes
 
 const reportingItems = [];
 if (userPermissions.includes('view_ticket_analysis_menu') || userPermissions.includes('view_reports')) {
-    reportingItems.push({ name: 'Ticket Analysis', href: '#', routeName: null });
+    reportingItems.push({ name: 'Ticket Analysis', href: route('ticket.analysis'), routeName: 'ticket.analysis' });
 }
 if (userPermissions.includes('view_customer_ratings_menu') || userPermissions.includes('view_reports')) {
-    reportingItems.push({ name: 'Customer Ratings', href: '#', routeName: null });
+    reportingItems.push({ name: 'Customer Ratings', href: route('customer-ratings.index'), routeName: 'customer-ratings.*' });
 }
 
 const settingsItems = [];

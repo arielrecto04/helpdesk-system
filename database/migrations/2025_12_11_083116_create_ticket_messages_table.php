@@ -20,12 +20,6 @@ return new class extends Migration
             $table->string('attachment_name')->nullable();
             $table->string('attachment_type')->nullable();
             $table->unsignedBigInteger('attachment_size')->nullable();
-            $table->enum('call_type', ['voice', 'video'])->nullable();
-            $table->enum('call_status', ['initiated', 'ringing', 'in_progress', 'ended', 'missed', 'declined'])->nullable();
-            $table->timestamp('call_started_at')->nullable();
-            $table->timestamp('call_ended_at')->nullable();
-            $table->unsignedBigInteger('call_duration')->nullable();
-            $table->string('call_recording_path')->nullable();
             $table->timestamps();
         });
     }

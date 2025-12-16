@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB; // Import DB facade
 
 return new class extends Migration
 {
@@ -14,38 +13,28 @@ return new class extends Migration
     {
         Schema::create('customer_ratings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ticket_id');
-            $table->unsignedBigInteger('customer_id');
-            $table->unsignedBigInteger('assigned_to_employee_id')->nullable();
-            $table->unsignedBigInteger('team_id')->nullable();
+            $table->foreignId('ticket_id')->constrained('tickets')->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('assigned_to_employee_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('team_id')->nullable()->constrained('helpdesk_teams')->nullOnDelete();
             
             $table->tinyInteger('rating'); // Validation (1-5) should be in your application logic
             $table->text('comment')->nullable();
-            $table->timestamp('submitted_on')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamp('submitted_on')->useCurrent();
+
+            // Track when the rating record was created/updated
+            $table->timestamps();
 
             // A customer can only rate a ticket once
             $table->unique(['ticket_id', 'customer_id'], 'uk_ticket_customer');
 
-            // Foreign Keys
-            $table->foreign('ticket_id')
-                  ->references('id')
-                  ->on('tickets')
-                  ->onDelete('cascade'); // If ticket is deleted, rating is irrelevant
-            
-            $table->foreign('customer_id')
-                  ->references('id')
-                  ->on('customers')
-                  ->onDelete('cascade'); // If customer is deleted, delete their ratings
-            
-            $table->foreign('assigned_to_employee_id')
-                ->references('id')
-                ->on('employees')
-                ->nullOnDelete(); // Keep rating, but remove link to deleted employee
-            
-            $table->foreign('team_id')
-                  ->references('id')
-                  ->on('helpdesk_teams')
-                  ->onDelete('set null'); // Keep rating, but remove link to deleted team
+            // Helpful indexes for common filters/reports
+            $table->index('ticket_id');
+            $table->index('customer_id');
+            $table->index('assigned_to_employee_id');
+            $table->index('team_id');
+            $table->index('rating');
+            $table->index('submitted_on');
         });
     }
 

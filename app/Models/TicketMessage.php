@@ -15,12 +15,7 @@ class TicketMessage extends Model
         'attachment_name',
         'attachment_type',
         'attachment_size',
-        'call_type',
-        'call_status',
-        'call_started_at',
-        'call_ended_at',
-        'call_duration',
-        'call_recording_path',
+        // call-related fields removed
     ];
 
     protected $appends = ['attachment_url'];

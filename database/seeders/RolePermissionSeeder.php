@@ -120,6 +120,7 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'can_view_other_locations_tickets', 'description' => 'Can view tickets in other locations'],
             ['name' => 'can_view_other_teams_tickets', 'description' => 'Can view tickets for other teams'],
             ['name' => 'can_view_other_users_tickets', 'description' => 'Can view tickets for other users'],
+            ['name' => 'can_view_tickets_even_not_employee', 'description' => 'Can view tickets even without an employee record'],
 
         ];
 
@@ -163,7 +164,7 @@ class RolePermissionSeeder extends Seeder
             'view_permissions_menu','show_permissions','create_permissions','edit_permissions','delete_permissions',
             'view_positions_menu','show_positions','create_positions','edit_positions','delete_positions',
             'can_view_other_locations_tickets','can_view_other_teams_tickets','can_view_other_users_tickets',
-            
+            'can_view_tickets_even_not_employee',
         ];
 
         // Admin Role
