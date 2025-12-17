@@ -48,6 +48,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/teamtickets', [TeamTicketsController::class, 'index'])->name('teamtickets.index')->middleware('permission:show_teamtickets');
     Route::get('/teamtickets/create', [TeamTicketsController::class, 'create'])->name('teamtickets.create')->middleware('permission:create_teamtickets');
     Route::post('/teamtickets', [TeamTicketsController::class, 'store'])->name('teamtickets.store')->middleware('permission:create_teamtickets');
+    Route::post('/teamtickets/bulk-update', [TeamTicketsController::class, 'bulkUpdate'])->name('teamtickets.bulk-update')->middleware('permission:edit_teamtickets');
+    Route::post('/teamtickets/bulk-delete', [TeamTicketsController::class, 'bulkDelete'])->name('teamtickets.bulk-delete')->middleware('permission:delete_teamtickets');
     Route::get('/teamtickets/{ticket}', [TeamTicketsController::class, 'show'])->name('teamtickets.show')->middleware('permission:show_teamtickets');
     Route::get('/teamtickets/{ticket}/edit', [TeamTicketsController::class, 'edit'])->name('teamtickets.edit')->middleware('permission:edit_teamtickets');
     Route::put('/teamtickets/{ticket}', [TeamTicketsController::class, 'update'])->name('teamtickets.update')->middleware('permission:edit_teamtickets');
@@ -66,6 +68,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/mytickets', [MyTicketsController::class, 'index'])->name('mytickets.index')->middleware('permission:show_mytickets');
     Route::get('/mytickets/create', [MyTicketsController::class, 'create'])->name('mytickets.create')->middleware('permission:create_mytickets');
     Route::post('/mytickets', [MyTicketsController::class, 'store'])->name('mytickets.store')->middleware('permission:create_mytickets');
+    Route::post('/mytickets/bulk-update', [MyTicketsController::class, 'bulkUpdate'])->name('mytickets.bulk-update')->middleware('permission:edit_mytickets');
+    Route::post('/mytickets/bulk-delete', [MyTicketsController::class, 'bulkDelete'])->name('mytickets.bulk-delete')->middleware('permission:delete_mytickets');
     Route::get('/mytickets/{ticket}', [MyTicketsController::class, 'show'])->name('mytickets.show')->middleware('permission:show_mytickets');
     Route::get('/mytickets/{ticket}/edit', [MyTicketsController::class, 'edit'])->name('mytickets.edit')->middleware('permission:edit_mytickets');
     Route::put('/mytickets/{ticket}', [MyTicketsController::class, 'update'])->name('mytickets.update')->middleware('permission:edit_mytickets');

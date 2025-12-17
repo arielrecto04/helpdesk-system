@@ -27,7 +27,6 @@ class TeamTicketsController extends Controller
         
         $query = Ticket::query()
             ->with(['customer', 'team', 'assignedTo'])
-            ->latest()
             ->visibleTo($user);
 
         // Get employee and their teams for access checks (separate from filtering)
@@ -35,6 +34,7 @@ class TeamTicketsController extends Controller
         if (!$employee) {
             $employee = Employee::where('email', $user->email)->with('helpdeskTeams')->first();
         }
+        $employeeId = $employee ? $employee->id : null;
         $userTeamIds = $employee ? $employee->helpdeskTeams->pluck('id')->toArray() : [];
 
         $team = null;
@@ -57,7 +57,76 @@ class TeamTicketsController extends Controller
             // When no specific team requested, rely on visibility scope to restrict by team if needed
         }
 
-        $tickets = $query->paginate(10)->withQueryString();
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('subject', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function ($q) use ($search) {
+                      $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('assignedTo', function ($q) use ($search) {
+                      $q->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($q) use ($search) {
+                            $q->where('email', 'like', "%{$search}%");
+                        });
+                  });
+            });
+        }
+
+        // Stage filter
+        if ($request->filled('stage')) {
+            $query->where('stage', $request->input('stage'));
+        }
+
+        // Priority filter
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->input('priority'));
+        }
+
+        // Assigned filter
+        if ($request->filled('assigned')) {
+            $assignedFilter = $request->input('assigned');
+            if ($assignedFilter === 'me' && $employeeId) {
+                $query->where('assigned_to_employee_id', $employeeId);
+            } elseif ($assignedFilter === 'unassigned') {
+                $query->whereNull('assigned_to_employee_id');
+            }
+        }
+
+        // Created date filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->input('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->input('date_to'));
+        }
+
+        // Deadline date filter
+        if ($request->filled('deadline_from')) {
+            $query->whereDate('deadline', '>=', $request->input('deadline_from'));
+        }
+        if ($request->filled('deadline_to')) {
+            $query->whereDate('deadline', '<=', $request->input('deadline_to'));
+        }
+
+        // Sorting
+        if ($request->filled('sort_field')) {
+            $sortField = $request->input('sort_field');
+            $sortDirection = $request->input('sort_direction', 'asc');
+            $query->orderBy($sortField, $sortDirection);
+        } else {
+            $query->latest();
+        }
+
+        $tickets = $query->paginate(15)->withQueryString();
+
+        // Total visible tickets for this user (unfiltered)
+        $totalAll = Ticket::query()->visibleTo($user)->count();
 
         $tickets->getCollection()->transform(function ($ticket) use ($user) {
             if ($ticket->assignedTo) {
@@ -72,8 +141,14 @@ class TeamTicketsController extends Controller
 
         return Inertia::render('TeamTickets', [
             'tickets' => $tickets,
-            'filters' => $request->only(['search', 'status', 'priority', 'team']),
             'team' => $team,
+            'teams' => HelpdeskTeam::all(['id', 'team_name']),
+            'totalAll' => $totalAll,
+            'filters' => $request->only([
+                'search', 'stage', 'priority', 'assigned',
+                'date_from', 'date_to', 'deadline_from', 'deadline_to',
+                'sort_field', 'sort_direction'
+            ])
         ]);
     }
 
@@ -192,6 +267,88 @@ class TeamTicketsController extends Controller
     {
         $ticket->delete();
         return redirect()->route('teamtickets.index')->with('success', 'Ticket deleted successfully.');
+    }
+
+    /**
+     * Bulk update tickets for teams.
+     */
+    public function bulkUpdate(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'ticket_ids' => 'required|array',
+            'ticket_ids.*' => 'exists:tickets,id',
+            'updates' => 'required|array',
+            'updates.stage' => 'nullable|in:Open,In Progress,Resolved,Closed',
+            'updates.priority' => 'nullable|in:Low,Medium,High,Urgent',
+            'updates.assigned_to_employee_id' => 'nullable|exists:employees,id',
+        ]);
+
+        $ticketIds = $validated['ticket_ids'];
+        $updates = array_filter($validated['updates'], fn($val) => $val !== null && $val !== '');
+        if (($updates['assigned_to_employee_id'] ?? null) === 'null') {
+            $updates['assigned_to_employee_id'] = null;
+        }
+
+        $count = 0;
+        foreach ($ticketIds as $ticketId) {
+            $ticket = Ticket::find($ticketId);
+            if (!$ticket) continue;
+
+            $employeeId = Employee::where('user_id', $user->id)->value('id');
+            $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
+
+            $canEdit = $hasTeamAccess
+                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || $user->hasPermissionTo('edit_teamtickets');
+
+            if ($canEdit) {
+                $ticket->update($updates);
+                $count++;
+            }
+        }
+
+        return redirect()->route('teamtickets.index')
+            ->with('message', "Successfully updated {$count} ticket(s).");
+    }
+
+    /**
+     * Bulk delete tickets for teams.
+     */
+    public function bulkDelete(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'ticket_ids' => 'required|array',
+            'ticket_ids.*' => 'exists:tickets,id',
+        ]);
+
+        $ticketIds = $validated['ticket_ids'];
+        $count = 0;
+
+        foreach ($ticketIds as $ticketId) {
+            $ticket = Ticket::find($ticketId);
+            if (!$ticket) continue;
+
+            $employeeId = Employee::where('user_id', $user->id)->value('id');
+            $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
+
+            $canDelete = $hasTeamAccess
+                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || $user->hasPermissionTo('delete_teamtickets');
+
+            if ($canDelete) {
+                $ticket->delete();
+                $count++;
+            }
+        }
+
+        return redirect()->route('teamtickets.index')
+            ->with('message', "Successfully deleted {$count} ticket(s).");
     }
 }
 

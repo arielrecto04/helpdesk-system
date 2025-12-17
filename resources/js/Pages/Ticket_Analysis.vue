@@ -24,6 +24,11 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    customers: {
+        type: Array,
+        required: false,
+        default: () => []
+    },
     avgResponseTime: {
         type: String,
         required: true
@@ -56,10 +61,34 @@ const selectedTeam = ref('all');
 const selectedPriority = ref('all');
 const selectedStage = ref('all');
 const selectedEmployee = ref('all');
+const selectedCustomer = ref('all');
 const selectedStartDate = ref('');
 const selectedEndDate = ref('');
 const isExporting = ref(false);
+const showFilters = ref(true);
+const createdFrom = ref('');
+const createdTo = ref('');
+const deadlineFrom = ref('');
+const deadlineTo = ref('');
 
+const toggleFilters = () => {
+    showFilters.value = !showFilters.value;
+};
+
+// Clear all export/filter inputs back to defaults
+const clearFilters = () => {
+    selectedTeam.value = 'all';
+    selectedPriority.value = 'all';
+    selectedStage.value = 'all';
+    selectedEmployee.value = 'all';
+    selectedCustomer.value = 'all';
+    selectedStartDate.value = '';
+    selectedEndDate.value = '';
+    createdFrom.value = '';
+    createdTo.value = '';
+    deadlineFrom.value = '';
+    deadlineTo.value = '';
+};
 // Calculate max value for chart scaling
 const maxMonthlyValue = computed(() => {
     const values = props.monthlyTrends.flatMap(t => [t.created, t.resolved]);
@@ -77,14 +106,22 @@ const exportXLSX = () => {
 
     try {
         const params = new URLSearchParams();
-        if (selectedTeam.value) params.append('team', selectedTeam.value);
-        if (selectedPriority.value) params.append('priority', selectedPriority.value);
-        if (selectedStage.value) params.append('stage', selectedStage.value);
-        if (selectedStartDate.value) params.append('startDate', selectedStartDate.value);
-        if (selectedEndDate.value) params.append('endDate', selectedEndDate.value);
-        if (selectedEmployee.value) params.append('employee', selectedEmployee.value);
+        if (selectedTeam.value && selectedTeam.value !== 'all') params.append('team', selectedTeam.value);
+        if (selectedPriority.value && selectedPriority.value !== 'all') params.append('priority', selectedPriority.value);
+        if (selectedStage.value && selectedStage.value !== 'all') params.append('stage', selectedStage.value);
+        if (selectedStartDate.value) params.append('date_from', selectedStartDate.value);
+        if (selectedEndDate.value) params.append('date_to', selectedEndDate.value);
+        if (selectedEmployee.value && selectedEmployee.value !== 'all') {
+            // send as 'assigned' so export handles employee id or special values
+            params.append('assigned', selectedEmployee.value);
+        }
+        if (selectedCustomer.value && selectedCustomer.value !== 'all') params.append('customer_id', selectedCustomer.value);
+        if (createdFrom.value) params.append('created_from', createdFrom.value);
+        if (createdTo.value) params.append('created_to', createdTo.value);
+        if (deadlineFrom.value) params.append('deadline_from', deadlineFrom.value);
+        if (deadlineTo.value) params.append('deadline_to', deadlineTo.value);
 
-        // navigate to export route to trigger .xlsx download
+        // navigate to export route to trigger .xlsx download (no `search` param included)
         const url = `/ticket-analysis/export?${params.toString()}`;
         window.location.href = url;
     } catch (error) {
@@ -235,58 +272,135 @@ const activeTicketsPercentage = computed(() => {
                         Back to Dashboard
                     </Link>
                 </div>
+                <!-- Export Filters Toggle + Content -->
+                <div v-if="hasData" class="mb-6">
+                    <div class="flex justify-end mb-2">
+                        <button @click="toggleFilters" class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition-colors duration-200">
+                            <svg v-if="showFilters" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"/>
+                            </svg>
+                            <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h12"/>
+                            </svg>
+                            <span>{{ showFilters ? 'Hide Filters' : 'Show Filters' }}</span>
+                        </button>
+                    </div>
+                    <div v-show="showFilters" class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                </svg>
+                                Export Filters
+                            </h3>
+                            <button @click="clearFilters" class="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Clear All
+                            </button>
+                        </div>
 
-                <!-- Export Filters -->
-                <div v-if="hasData" class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                        </svg>
-                        Export Filters
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Team</label>
-                            <select v-model="selectedTeam" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="all">All Teams</option>
-                                <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
-                            </select>
+                        <!-- Filter Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <!-- Team Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Team</label>
+                                <select v-model="selectedTeam" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200">
+                                    <option value="all">All Teams</option>
+                                    <option v-for="team in teams" :key="team.id" :value="team.id">{{ team.name }}</option>
+                                </select>
+                            </div>
+
+                            <!-- Employee Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Employee</label>
+                                <select v-model="selectedEmployee" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200">
+                                    <option value="all">All Employees</option>
+                                    <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+                                </select>
+                            </div>
+
+                            <!-- Customer Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Customer</label>
+                                <select v-model="selectedCustomer" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200">
+                                    <option value="all">All Customers</option>
+                                    <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.first_name }} {{ c.last_name }}</option>
+                                </select>
+                            </div>
+
+                            <!-- Priority Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Priority</label>
+                                <select v-model="selectedPriority" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200">
+                                    <option value="all">All Priorities</option>
+                                    <option value="Urgent">Urgent</option>
+                                    <option value="High">High</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+
+                            <!-- Stage Filter -->
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">Stage</label>
+                                <select v-model="selectedStage" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-all duration-200">
+                                    <option value="all">All Stages</option>
+                                    <option value="Open">Open</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Employee</label>
-                            <select v-model="selectedEmployee" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="all">All Employees</option>
-                                <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-                            <select v-model="selectedPriority" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="all">All Priorities</option>
-                                <option value="Urgent">Urgent</option>
-                                <option value="High">High</option>
-                                <option value="Normal">Normal</option>
-                                <option value="Low">Low</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Stage</label>
-                            <select v-model="selectedStage" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="all">All Stages</option>
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
-                                <option value="Closed">Closed</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                            <input type="date" v-model="selectedStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                            <input type="date" v-model="selectedEndDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+
+                        <!-- Date Range Filters -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                            <!-- Ticket Date Range -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h4 class="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Ticket Date Range</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">From</label>
+                                        <input v-model="selectedStartDate" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">To</label>
+                                        <input v-model="selectedEndDate" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Created Date Range -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h4 class="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Created Date Range</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">From</label>
+                                        <input v-model="createdFrom" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">To</label>
+                                        <input v-model="createdTo" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Deadline Date Range -->
+                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                <h4 class="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Deadline Date Range</h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">From</label>
+                                        <input v-model="deadlineFrom" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-600 mb-1">To</label>
+                                        <input v-model="deadlineTo" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
