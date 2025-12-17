@@ -93,7 +93,7 @@ const stats = [
         <div class="container mx-auto px-6 pt-10 pb-24">
             <div class="flex flex-col items-center text-center">
                 <!-- 3D Isometric Avatar Placeholder (replace with real render) -->
-                <div class="relative mb-10">
+                <div class="relative mb-10 z-0">
                     <div class="mx-auto h-[380px] w-[680px] rounded-3xl bg-gradient-to-br from-[#15447A] to-[#1E588F] shadow-2xl ring-1 ring-white/10 backdrop-blur-xl" style="perspective:1000px">
                         <div class="absolute inset-6 rounded-2xl bg-white/8 backdrop-blur-xl ring-1 ring-white/10 shadow-lg" style="transform:rotateX(8deg) rotateY(-6deg); transform-style:preserve-3d"></div>
                         <!-- Floating UI widgets -->
@@ -111,11 +111,11 @@ const stats = [
                 </div>
 
                 <!-- Headline & Subcopy -->
-                <h1 class="mb-4 text-5xl font-semibold leading-tight tracking-tight text-white">
-                    Premium IT Helpdesk, Elevated by Design
+                <h1 class="relative z-20 -mt-72 mb-1 text-5xl font-semibold leading-tight tracking-tight text-white">
+                    IITS Helpdesk: Streamlined Support for Modern Businesses
                 </h1>
-                <p class="mb-10 max-w-3xl text-lg text-[#C9D3E8]">
-                    Corporate-modern support platform with streamlined ticketing, intelligent routing,
+                <p class="relative z-20 mb-10 max-w-3xl text-lg text-[#C9D3E8]">
+                    Corporate-modern support platform with streamlined ticketing,
                     and delightful UI. Built for speed, clarity, and confidence.
                 </p>
 
