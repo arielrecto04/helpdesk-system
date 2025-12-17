@@ -356,21 +356,8 @@ const activeTicketsPercentage = computed(() => {
                         </div>
 
                         <!-- Date Range Filters -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                            <!-- Ticket Date Range -->
-                            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <h4 class="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Ticket Date Range</h4>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs text-gray-600 mb-1">From</label>
-                                        <input v-model="selectedStartDate" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs text-gray-600 mb-1">To</label>
-                                        <input v-model="selectedEndDate" type="date" class="block w-full px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
+                            <!-- (Ticket Date Range removed) -->
 
                             <!-- Created Date Range -->
                             <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">

@@ -15,8 +15,11 @@ class HelpdeskTeamsController extends Controller
      */
     public function index(): Response
     {
+        // Provide members_count (alias for employees count) and paginate for the frontend
+        $teams = HelpdeskTeam::withCount(['employees as members_count'])->paginate(10);
+
         return Inertia::render('HelpdeskTeams', [
-            'teams' => HelpdeskTeam::all(),
+            'teams' => $teams,
         ]);
     }
 
@@ -92,6 +95,9 @@ class HelpdeskTeamsController extends Controller
      */
     public function show(HelpdeskTeam $team): Response
     {
+        // Ensure the single team has members_count available for the frontend
+        $team->loadCount(['employees as members_count']);
+
         return Inertia::render('HelpdeskTeams/Show', [
             'helpdesk_team' => $team,
         ]);
