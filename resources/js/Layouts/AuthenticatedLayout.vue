@@ -103,7 +103,7 @@ const tabs = [
                 <span class="text-white font-bold text-lg tracking-wide whitespace-nowrap">IITS Helpdesk</span>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-6 scrollbar-thin scrollbar-thumb-slate-700">
+            <nav class="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 space-y-6 scrollbar-thin scrollbar-thumb-slate-700">
                 <template v-for="tab in tabs" :key="tab.name">
                     
                     <div v-if="tab.type === 'tab'">
