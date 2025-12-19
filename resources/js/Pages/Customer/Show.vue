@@ -104,10 +104,10 @@
                                 <dt class="text-sm font-medium text-gray-500">Created At</dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ new Date(customer.created_at).toLocaleString() }}</dd>
                             </div>
-                            <div>
+                            <!-- <div>
                                 <dt class="text-sm font-medium text-gray-500">Updated At</dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ new Date(customer.updated_at).toLocaleString() }}</dd>
-                            </div>
+                            </div> -->
                         </dl>
                     </div>
                 </div>

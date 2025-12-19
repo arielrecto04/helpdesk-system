@@ -138,7 +138,7 @@
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{ ticket.assigned_employee_is_current_user ? 'You' : (ticket.assigned_employee_name ? ticket.assigned_employee_name : 'Unassigned') }}
+                                            {{ isAssignedToAuthUser ? 'You' : (ticket.assigned_employee_name ? ticket.assigned_employee_name : 'Unassigned') }}
                                         </dd>
                                     </div>
                                 </dl>
@@ -177,11 +177,17 @@
                                 <span v-if="!(ticket.tags && ticket.tags.length)" class="text-sm text-slate-500">No tags</span>
                             </div>
                         </div>
+                        
+                        <div class="mt-6">
+                            <div v-if="isAssignedToAuthUser">
+                                <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Chat Component -->
-                <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+                
 
                 <Modal :show="confirmingAllTicketDeletion" @close="closeModal">
                     <div class="p-6">
@@ -209,7 +215,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -227,14 +233,29 @@ const props = defineProps({
         type: Array,
         default: () => []
     }
+    ,
+    messages_count: {
+        type: Number,
+        default: 0
+    }
 });
 
 const confirmingAllTicketDeletion = ref(false);
 const form = useForm({});
-
 const page = usePage();
-const authUser = page.props.auth.user;
+const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user : null;
 const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+
+const isAssignedToAuthUser = computed(() => {
+
+    const assignedUserId = props.ticket.assigned_to?.user_id ?? props.ticket.assigned_employee?.user_id ?? null;
+
+    if (assignedUserId !== null && assignedUserId !== undefined) {
+        return String(assignedUserId) === String(authUser.id);
+    }
+
+    return false;
+});
 
 const confirmAllTicketDeletion = () => {
     confirmingAllTicketDeletion.value = true;

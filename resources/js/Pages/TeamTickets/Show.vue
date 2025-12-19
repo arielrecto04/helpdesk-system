@@ -138,7 +138,7 @@
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Assigned To</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            {{ ticket.assigned_employee_is_current_user ? 'You' : (ticket.assigned_employee_name ? ticket.assigned_employee_name : 'Unassigned') }}
+                                            {{ ticket.assigned_employee_id === authUser.id ? 'You' : (ticket.assigned_employee_name ? ticket.assigned_employee_name : 'Unassigned') }}
                                         </dd>
                                     </div>
                                 </dl>
@@ -181,7 +181,30 @@
                 </div>
 
                 <!-- Chat Component -->
-                <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+                <div v-if="ticket.assigned_employee_id === authUser.id" class="mt-6">
+                    <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
+                </div>
+                <div v-else class="mt-6 bg-white overflow-hidden shadow-xl rounded-2xl border border-gray-400">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-800">Chat Unavailable</h3>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 flex items-start gap-3">
+                            <svg class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <p class="text-sm font-semibold text-amber-900 mb-1">{{ ticket.assigned_employee_name && ticket.assigned_employee_id !== authUser.id ? 'Not Assigned to You' : 'Ticket Unassigned' }}</p>
+                                <p class="text-sm text-amber-700">{{ ticket.assigned_employee_name && ticket.assigned_employee_id !== authUser.id ? 'This Ticket is not assigned to you.' : 'The chat will be available once this ticket is assigned to an agent.' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <Modal :show="confirmingTeamTicketDeletion" @close="closeModal">
                     <div class="p-6">

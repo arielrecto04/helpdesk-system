@@ -66,6 +66,7 @@ const viewCustomer = (customerId) => {
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">ID</th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Has Account</th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Company</th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone</th>
                                         <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Created</th>
@@ -73,7 +74,7 @@ const viewCustomer = (customerId) => {
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-100">
                                     <tr v-if="dataCustomers.length === 0">
-                                        <td colspan="6" class="px-6 py-16 text-center">
+                                        <td colspan="7" class="px-6 py-16 text-center">
                                             <div class="flex flex-col items-center">
                                                 <div class="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-full mb-4">
                                                     <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,6 +102,9 @@ const viewCustomer = (customerId) => {
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50">
                                             <div class="text-sm text-gray-700">{{ customer.email }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50">
+                                            <div class="text-sm font-medium text-gray-800">{{ customer.has_account ? 'Yes' : 'No' }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50">
                                             <div class="text-sm text-gray-700">{{ customer.company_name ?? 'N/A' }}</div>

@@ -20,6 +20,7 @@ class CustomersController extends Controller
      */
     public function index(): Response
     {
+        
         $customers = Customer::latest()
             ->paginate(10)
             ->through(fn ($customer) => [
@@ -34,6 +35,8 @@ class CustomersController extends Controller
                 'company_name' => $customer->company?->name ?? null,
                 'created_at' => $customer->created_at->toDateTimeString(),
                 'updated_at' => $customer->updated_at->toDateTimeString(),
+                'has_account' => $customer->user_id,
+                
             ]);
 
         return Inertia::render('Customer', [

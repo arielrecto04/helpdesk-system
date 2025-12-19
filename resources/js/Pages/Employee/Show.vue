@@ -129,16 +129,16 @@
                                     </div>
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Hire Date</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ employee.hire_date ? new Date(employee.hire_date).toLocaleDateString() : 'N/A' }}</dd>
+                                        <dd class="mt-1 text-sm text-gray-900">{{ employee.hire_date ? new Date(employee.hire_date).toLocaleString() : 'N/A' }}</dd>
                                     </div>
-                                    <div>
+                                    <!-- <div>
                                         <dt class="text-sm font-medium text-gray-500">Created At</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ new Date(employee.created_at).toLocaleString() }}</dd>
                                     </div>
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Updated At</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ new Date(employee.updated_at).toLocaleString() }}</dd>
-                                    </div>
+                                    </div> -->
                                 </dl>
                             </div>
                         </div>

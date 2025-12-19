@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -17,6 +17,24 @@ const form = useForm({
     description: props.role.description,
     permissions: (props.role.permissions ?? []).map(p => p.id),
 });
+
+const showCategorySelectors = ref(true);
+
+const isCategoryAllChecked = (permissions) => {
+    if (!permissions || permissions.length === 0) return false;
+    return permissions.every(p => form.permissions.includes(p.id));
+};
+
+const toggleCategory = (permissions) => {
+    const ids = permissions.map(p => p.id);
+    const allChecked = ids.every(id => form.permissions.includes(id));
+    if (allChecked) {
+        form.permissions = form.permissions.filter(id => !ids.includes(id));
+    } else {
+        const missing = ids.filter(id => !form.permissions.includes(id));
+        form.permissions = [...form.permissions, ...missing];
+    }
+};
 
 // Categorize permissions
 const categorizedPermissions = computed(() => {
@@ -47,7 +65,6 @@ const categorizedPermissions = computed(() => {
     props.all_permissions.forEach(permission => {
         const raw = (permission.name || '').toLowerCase();
 
-        // Customer-specific dashboard permissions must be matched before the generic 'dashboard' check
         if (raw.includes('customer_dashboard') || raw.includes('customer-dashboard') || raw.includes('customer dashboard') || raw.includes('cust_dashboard') || raw.includes('cust-dashboard')) {
             categories['Customer Dashboard'].push(permission);
         } else if (raw.includes('dashboard') || raw.includes('profile') || raw.includes('settings')) {
@@ -142,17 +159,21 @@ const submit = () => {
 
                             <div>
                                 <InputLabel for="name" value="Role Name" />
-                                <TextInput
-                                    id="name"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    v-model="form.name"
-                                    required
-                                    autofocus
-                                />
-                                <InputError class="mt-2" :message="form.errors.name" />
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-1">
+                                        <TextInput
+                                            id="name"
+                                            type="text"
+                                            class="mt-1 block w-full"
+                                            v-model="form.name"
+                                            required
+                                            autofocus
+                                        />
+                                        <InputError class="mt-2" :message="form.errors.name" />
+                                    </div>
+                                </div>
                             </div>
-
+                            <!-- Role Description -->
                             <div class="mt-4">
                                 <InputLabel for="description" value="Description" />
                                 <TextInput
@@ -163,12 +184,24 @@ const submit = () => {
                                 />
                                 <InputError class="mt-2" :message="form.errors.description" />
                             </div>
-
+                            <!-- Permissions Checkboxes -->
                             <div class="mt-6">
                                 <h3 class="font-semibold text-lg text-gray-800 mb-4">Permissions</h3>
                                 <div class="space-y-6">
                                     <div v-for="[category, permissions] in categorizedPermissions" :key="category" class="border border-gray-200 rounded-lg p-4">
-                                        <h4 class="font-semibold text-md text-gray-700 mb-3">{{ category }}</h4>
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="font-semibold text-md text-gray-700">{{ category }}</h4>
+                                            <div v-if="showCategorySelectors" class="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    :id="'cat_' + category.replace(/\s+/g, '_')"
+                                                    :checked="isCategoryAllChecked(permissions)"
+                                                    @change="toggleCategory(permissions)"
+                                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                                />
+                                                <label :for="'cat_' + category.replace(/\s+/g, '_')" class="ms-2 text-sm text-gray-600">Select all</label>
+                                            </div>
+                                        </div>
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
                                             <div v-for="permission in permissions" :key="permission.id" class="flex items-start">
                                                 <input
