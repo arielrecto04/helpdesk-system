@@ -37,27 +37,7 @@ class EmployeeSeeder extends Seeder
                 'email' => 'tony.stark@example.com',
                 'phone_number' => '0917-000-0002'
             ],
-            [
-                'first_name' => 'Bruce',
-                'middle_name' => null,
-                'last_name' => 'Wayne',
-                'email' => 'bruce.wayne@example.com',
-                'phone_number' => '0917-000-0003'
-            ],
-            [
-                'first_name' => 'Homer',
-                'middle_name' => null,
-                'last_name' => 'Simpson',
-                'email' => 'homer.simpson@example.com',
-                'phone_number' => '0917-000-0004'
-            ],
-            [
-                'first_name' => 'Lara',
-                'middle_name' => null,
-                'last_name' => 'Croft',
-                'email' => 'lara.croft@example.com',
-                'phone_number' => '0917-000-0005'
-            ]
+           
         ];
 
         foreach ($employeesData as $data) {

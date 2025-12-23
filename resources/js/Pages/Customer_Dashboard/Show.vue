@@ -4,13 +4,16 @@ import { usePage } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import TicketChat from '@/Components/TicketChat.vue';
 import StarRating from '@/Components/StarRating.vue';
-import { ref, reactive } from 'vue';
+import { ref, reactive, computed } from 'vue';
 
 const page = usePage();
 const ticket = page.props.ticket;
 const messages = page.props.messages || [];
 const canRate = page.props.can_rate || false;
 const existingRating = page.props.existing_rating || null;
+
+const authUser = page.props.auth ? page.props.auth.user : null;
+const messagesCount = page.props.messages_count ?? messages.length ?? 0;
 
 const rating = ref(existingRating ? existingRating.rating : 5);
 const comment = ref(existingRating ? existingRating.comment : '');
@@ -69,6 +72,33 @@ const submitRating = () => {
     onFinish: () => { isSubmitting.value = false; }
   });
 };
+const isAssignedToAuthUser = computed(() => {
+  if (!authUser) return false;
+  const authId = authUser.id ?? authUser.user_id ?? null;
+  if (!authId) return false;
+
+  const resolveId = (val) => {
+    if (val == null) return null;
+    if (typeof val === 'number' || typeof val === 'string') return String(val);
+    if (val.user_id) return String(val.user_id);
+    if (val.id) return String(val.id);
+    return null;
+  };
+
+  const candidates = [
+    resolveId(ticket?.assigned_to),
+    resolveId(ticket?.assignedTo),
+    resolveId(ticket?.assigned_employee),
+    resolveId(ticket?.assigned_to?.user),
+    resolveId(ticket?.assignedTo?.user),
+    resolveId(ticket?.assigned_employee?.user),
+    resolveId(ticket?.assigned_to_id),
+    resolveId(ticket?.assignedTo?.user_id),
+  ].filter(Boolean);
+
+  return candidates.some(id => String(id) === String(authId));
+});
+
 </script>
 
 <template>
@@ -347,29 +377,11 @@ const submitRating = () => {
         </div>
 
         <!-- Chat Component -->
-        <div v-if="ticket.assignedTo" class="mt-6">
-          <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messages_count" />
-        </div>
-        <div v-else class="mt-6 bg-white border border-slate-200 rounded-2xl p-8 shadow-lg">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center shadow-lg">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
+        <div class="mt-6">
+            <div v-if="ticket?.employee_id">
+              <TicketChat :ticketId="ticket.id" :initialMessages="messages" :initialMessagesCount="messagesCount" />
             </div>
-            <h3 class="text-lg font-bold text-slate-800">Chat Unavailable</h3>
-          </div>
-          <div class="bg-amber-50 border border-amber-200 rounded-xl p-6 flex items-start gap-3">
-            <svg class="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <p class="text-sm font-semibold text-amber-900 mb-1">Agent Not Yet Assigned</p>
-              <p class="text-sm text-amber-700">The chat will be available once an agent is assigned to your ticket.</p>
-            </div>
-          </div>
         </div>
-
       </div>
     </main>
 

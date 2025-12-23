@@ -11,9 +11,7 @@ class HelpdeskTeamSeeder extends Seeder
     {
         $teams = [
             ['team_name' => 'Technical Support'],
-            ['team_name' => 'Network Support'],
             ['team_name' => 'Software Support'],
-            ['team_name' => 'Hardware Support'],
             ['team_name' => 'General Support']
         ];
 

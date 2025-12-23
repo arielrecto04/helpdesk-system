@@ -118,9 +118,9 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'delete_positions', 'description' => 'Can delete positions'],
 
             ['name' => 'can_view_other_locations_tickets', 'description' => 'Can view tickets in other locations'],
-            ['name' => 'can_view_other_teams_tickets', 'description' => 'Can view tickets for other teams'],
-            ['name' => 'can_view_other_users_tickets', 'description' => 'Can view tickets for other users'],
+            ['name' => 'can_view_unassigned_tickets', 'description' => 'Can view tickets that are unassigned'],
             ['name' => 'can_view_tickets_even_not_employee', 'description' => 'Can view tickets even without an employee record'],
+            ['name' => 'can_see_all_ticket_chat', 'description' => 'Can view ticket chats even when not assigned to the ticket'],
 
         ];
 
@@ -142,8 +142,6 @@ class RolePermissionSeeder extends Seeder
             'view_customers_menu', 'show_customers', 'create_customers', 'edit_customers',
         ];
 
-        // (Removed helpdesk role) — agents will be created per location below.
-
         $adminPermissions = [
             'view_dashboard', 'view_profile',
             'view_mytickets_menu','show_mytickets','create_mytickets','edit_mytickets','delete_mytickets',
@@ -163,8 +161,10 @@ class RolePermissionSeeder extends Seeder
             'view_logs_menu','show_logs','create_logs','edit_logs','delete_logs',
             'view_permissions_menu','show_permissions','create_permissions','edit_permissions','delete_permissions',
             'view_positions_menu','show_positions','create_positions','edit_positions','delete_positions',
-            'can_view_other_locations_tickets','can_view_other_teams_tickets','can_view_other_users_tickets',
+            'can_view_other_locations_tickets',
+            'can_view_unassigned_tickets',
             'can_view_tickets_even_not_employee',
+            'can_see_all_ticket_chat',
         ];
 
         // Admin Role
@@ -202,7 +202,6 @@ class RolePermissionSeeder extends Seeder
             ['name' => 'Customer'],
             ['description' => 'End user who can create and track tickets']
         );
-
         $customerPermissionIds = Permission::whereIn('name', $customerPermissions)->pluck('id');
         $customerRole->permissions()->sync($customerPermissionIds);
         $this->command->info('Customer role created and permissions assigned.');

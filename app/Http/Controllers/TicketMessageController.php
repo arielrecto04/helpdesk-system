@@ -7,23 +7,33 @@ use Illuminate\Http\Request;
 use App\Events\NewMessageEvent;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Carbon\Carbon;
+use App\Models\TicketMessage;
+use App\Models\Employee;
+use App\Models\User;
 
 class TicketMessageController extends Controller
 {
     public function index(Request $request, Ticket $ticket)
     {
+        /** @var User $user */
+        $user = Auth::user();
+        $employeeId = Employee::where('user_id', $user->id)->value('id');
+        $isAssigned = $ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId;
+        $isTicketOwner = $user->customer && $ticket->customer_id === $user->customer->id;
+        if (!(
+            $isAssigned ||
+            $user->hasPermissionTo('can_see_all_ticket_chat') ||
+            $isTicketOwner
+        )) {
+            abort(403, 'Unauthorized');
+        }
         $perPage = (int) $request->input('per_page', 20);
         $page = (int) $request->input('page', 1);
-
-        // Fetch latest messages first
         $paginator = $ticket->messages()->with('user')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'page', $page);
 
-        // Reverse them so they appear oldest -> newest (top -> bottom) in the chat
         $items = collect($paginator->items())->reverse()->values()->all();
-
         return response()->json([
             'data' => $items,
             'current_page' => $paginator->currentPage(),
@@ -35,34 +45,32 @@ class TicketMessageController extends Controller
 
     public function store(Request $request, Ticket $ticket)
     {
-        // 1. Validate
+        /** @var User $user */
+        $user = Auth::user();
+        $employeeId = Employee::where('user_id', $user->id)->value('id');
+        $isAssigned = $ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId;
+        $isTicketOwner = $user->customer && $ticket->customer_id === $user->customer->id;
+        if (!($isAssigned || $isTicketOwner)) {
+            abort(403, 'Sorry your not assigned to reply on this conversation.');
+        }
         $request->validate([
             'message' => 'nullable|string|max:1000',
             'attachment' => 'nullable|file|max:51200|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,webm,pdf,doc,docx,xls,xlsx,txt,zip,rar', // up to 50MB
         ]);
-
-        // 2. Custom Guard: Ensure we have EITHER a message OR an attachment
         if (!$request->message && !$request->hasFile('attachment')) {
             return response()->json(['message' => 'Message or attachment is required.'], 422);
         }
-
-        // 3. Handle File Upload and metadata
         $attachmentPath = null;
         $attachmentName = null;
         $attachmentType = null;
         $attachmentSize = null;
-
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            // Save to storage/app/public/ticket-attachments
             $attachmentPath = $file->store('ticket-attachments', 'public');
-
             $attachmentName = $file->getClientOriginalName();
             $attachmentType = $file->getClientMimeType();
             $attachmentSize = $file->getSize();
         }
-
-        // 4. Create Message with attachment metadata
         $message = $ticket->messages()->create([
             'user_id' => Auth::id(),
             'message' => $request->message,
@@ -71,14 +79,38 @@ class TicketMessageController extends Controller
             'attachment_type' => $attachmentType,
             'attachment_size' => $attachmentSize,
         ]);
-
-        // 5. Load User Relationship (for the avatar in Vue)
         $message->load('user');
-
-        // 6. Broadcast to others
         broadcast(new NewMessageEvent($message))->toOthers();
-
         return response()->json($message, 201);
     }
-    // Call-related endpoints removed: voice/video calling is disabled.
+
+    public function downloadAttachment(TicketMessage $message)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        $employeeId = Employee::where('user_id', $user->id)->value('id');
+        $ticket = $message->ticket()->first();
+        $isAssigned = $ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId;
+        $isTicketOwner = $user->customer && $ticket->customer_id === $user->customer->id;
+        if (!(
+            $isAssigned ||
+            $user->hasPermissionTo('can_see_all_ticket_chat') ||
+            $isTicketOwner
+        )) {
+            abort(403, 'Unauthorized');
+        }
+        if (!$message->attachment_path) {
+            abort(404);
+        }
+        $disk = Storage::disk('public');
+        if (!$disk->exists($message->attachment_path)) {
+            abort(404);
+        }
+        $filename = $message->attachment_name ?: basename($message->attachment_path);
+        $fullPath = $disk->path($message->attachment_path);
+        if (!file_exists($fullPath)) {
+            abort(404);
+        }
+        return response()->download($fullPath, $filename);
+    }
 }

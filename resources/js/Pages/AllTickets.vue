@@ -231,7 +231,7 @@ const executeBulkAction = () => {
         const updates = {};
         if (bulkStage.value) updates.stage = bulkStage.value;
         if (bulkPriority.value) updates.priority = bulkPriority.value;
-        if (bulkAssignTo.value) updates.assigned_to_employee_id = bulkAssignTo.value;
+        if (bulkAssignTo.value) updates.employee_id = bulkAssignTo.value;
         
         if (Object.keys(updates).length === 0) {
             alert('Please select at least one field to update.');

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ticket_id')->constrained('tickets')->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignId('assigned_to_employee_id')->nullable()->constrained('employees')->nullOnDelete();
+            $table->foreignId('employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->foreignId('team_id')->nullable()->constrained('helpdesk_teams')->nullOnDelete();
             
             $table->tinyInteger('rating'); // Validation (1-5) should be in your application logic
@@ -31,7 +31,7 @@ return new class extends Migration
             // Helpful indexes for common filters/reports
             $table->index('ticket_id');
             $table->index('customer_id');
-            $table->index('assigned_to_employee_id');
+            $table->index('employee_id');
             $table->index('team_id');
             $table->index('rating');
             $table->index('submitted_on');

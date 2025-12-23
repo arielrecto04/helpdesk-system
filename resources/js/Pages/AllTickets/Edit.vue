@@ -28,7 +28,7 @@ const form = useForm({
     priority: props.ticket.priority,
     stage: props.ticket.stage,
     team_id: props.ticket.team_id,
-    assigned_to_employee_id: props.ticket.assigned_to_employee_id,
+    employee_id: props.ticket.employee_id,
     deadline: props.ticket.deadline,
     deadline: formattedDeadline,
     tag_ids: props.ticket.tags ? props.ticket.tags.map(t => t.id) : [],
@@ -128,11 +128,11 @@ const submit = () => {
 
                                     <div class="mt-4">
                                         <InputLabel for="assigned_to" value="Assigned To" />
-                                        <select id="assigned_to" v-model="form.assigned_to_employee_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <select id="assigned_to" v-model="form.employee_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
                                             <option :value="null">Unassigned</option>
                                             <option v-for="employee in (employees || [])" :key="employee.id" :value="employee.id">{{ employee.first_name }} {{ employee.last_name }}</option>
                                         </select>
-                                        <InputError class="mt-2" :message="form.errors.assigned_to_employee_id" />
+                                        <InputError class="mt-2" :message="form.errors.employee_id" />
                                     </div>
 
                                     <div class="mt-4">

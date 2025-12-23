@@ -1,3 +1,79 @@
+
+<script setup>
+import { ref, computed } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import DangerButton from '@/Components/DangerButton.vue';
+import Modal from '@/Components/Modal.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import TicketChat from '@/Components/TicketChat.vue';
+
+const props = defineProps({
+    ticket: {
+        type: Object,
+        required: true
+    },
+    messages: {
+        type: Array,
+        default: () => []
+    }
+    ,
+    messages_count: {
+        type: Number,
+        default: 0
+    }
+});
+
+const confirmingAllTicketDeletion = ref(false);
+const form = useForm({});
+const page = usePage();
+const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user : null;
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+
+const isAssignedToAuthUser = computed(() => {
+    const assignedUserId = props.ticket.assigned_to?.user_id ?? props.ticket.assigned_employee?.user_id ?? null;
+    if (assignedUserId !== null && assignedUserId !== undefined) {
+        return String(assignedUserId) === String(authUser.id);
+    }
+    return false;
+});
+
+const confirmAllTicketDeletion = () => {
+    confirmingAllTicketDeletion.value = true;
+};
+
+const deleteAllTicket = () => {
+    form.delete(route('alltickets.destroy', props.ticket.id), {
+        onFinish: () => {
+            confirmingAllTicketDeletion.value = false;
+        },
+    });
+};
+
+const closeModal = () => {
+    confirmingAllTicketDeletion.value = false;
+};
+
+const getPriorityClass = (priority) => {
+    return {
+        'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200': priority === 'Urgent',
+        'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border border-orange-200': priority === 'High',
+        'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border border-blue-200': priority === 'Medium',
+        'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200': priority === 'Low',
+    };
+};
+
+const getStageClass = (stage) => {
+    return {
+        'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200': ['Resolved', 'Closed'].includes(stage),
+        'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border border-blue-200': stage === 'Open',
+        'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200': stage === 'In Progress',
+    };
+};
+
+</script>
+
 <template>
     <Head :title="`Ticket #${ticket.id}`" />
 
@@ -186,9 +262,6 @@
                     </div>
                 </div>
 
-                <!-- Chat Component -->
-                
-
                 <Modal :show="confirmingAllTicketDeletion" @close="closeModal">
                     <div class="p-6">
                         <h2 class="text-lg font-medium text-gray-900">
@@ -213,81 +286,3 @@
         </div>
     </AuthenticatedLayout>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue';
-import { useForm } from '@inertiajs/vue3';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import DangerButton from '@/Components/DangerButton.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TicketChat from '@/Components/TicketChat.vue';
-
-const props = defineProps({
-    ticket: {
-        type: Object,
-        required: true
-    },
-    messages: {
-        type: Array,
-        default: () => []
-    }
-    ,
-    messages_count: {
-        type: Number,
-        default: 0
-    }
-});
-
-const confirmingAllTicketDeletion = ref(false);
-const form = useForm({});
-const page = usePage();
-const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user : null;
-const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
-
-const isAssignedToAuthUser = computed(() => {
-
-    const assignedUserId = props.ticket.assigned_to?.user_id ?? props.ticket.assigned_employee?.user_id ?? null;
-
-    if (assignedUserId !== null && assignedUserId !== undefined) {
-        return String(assignedUserId) === String(authUser.id);
-    }
-
-    return false;
-});
-
-const confirmAllTicketDeletion = () => {
-    confirmingAllTicketDeletion.value = true;
-};
-
-const deleteAllTicket = () => {
-    form.delete(route('alltickets.destroy', props.ticket.id), {
-        onFinish: () => {
-            confirmingAllTicketDeletion.value = false;
-        },
-    });
-};
-
-const closeModal = () => {
-    confirmingAllTicketDeletion.value = false;
-};
-
-const getPriorityClass = (priority) => {
-    return {
-        'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200': priority === 'Urgent',
-        'bg-gradient-to-r from-orange-100 to-amber-100 text-orange-800 border border-orange-200': priority === 'High',
-        'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border border-blue-200': priority === 'Medium',
-        'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200': priority === 'Low',
-    };
-};
-
-const getStageClass = (stage) => {
-    return {
-        'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200': ['Resolved', 'Closed'].includes(stage),
-        'bg-gradient-to-r from-blue-100 to-sky-100 text-blue-800 border border-blue-200': stage === 'Open',
-        'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200': stage === 'In Progress',
-    };
-};
-
-</script>

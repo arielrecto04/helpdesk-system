@@ -152,6 +152,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Ticket Messages Routes
     Route::get('/tickets/{ticket}/messages', [TicketMessageController::class, 'index'])->name('ticket.messages.index');
     Route::post('/tickets/{ticket}/messages', [TicketMessageController::class, 'store'])->name('ticket.messages.store');
+    // Download attachment (returns original filename)
+    Route::get('/tickets/messages/{message}/attachment', [TicketMessageController::class, 'downloadAttachment'])->name('ticket.messages.attachment');
     
     // Ticket Analysis Routes
     Route::get('/ticket-analysis', [TicketAnalysisController::class, 'index'])->name('ticket.analysis')->middleware('permission:view_ticket_analysis_menu');
@@ -161,7 +163,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/customer-ratings', [CustomerRatingsController::class, 'index'])->name('customer-ratings.index')->middleware('permission:view_customer_ratings_menu');
     Route::get('/customer-ratings/{rating}', [CustomerRatingsController::class, 'show'])->name('customer-ratings.show')->middleware('permission:view_customer_ratings_menu');
     
-
 });
 
 require __DIR__.'/auth.php';

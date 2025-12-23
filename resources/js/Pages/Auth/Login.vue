@@ -54,7 +54,7 @@ const submit = () => {
 
                     <TextInput id="email" type="email" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400
                         focus:border-[#3BA3FF] focus:ring-[#3BA3FF]" v-model="form.email" required
-                        autofocus autocomplete="username" placeholder="you@company.com" />
+                        autofocus autocomplete="username" placeholder="admin@helpdesk.com" />
 
                     <InputError class="mt-2 text-rose-300" :message="form.errors.email" />
                 </div>
@@ -63,7 +63,7 @@ const submit = () => {
                     <InputLabel for="password" value="Password" class="text-white/80" />
                     <TextInput id="password" type="password" class="mt-1 block w-full rounded-lg border border-white/10 bg-white/4 text-slate-900 placeholder-slate-400
                         focus:border-[#3BA3FF] focus:ring-[#3BA3FF]" v-model="form.password"
-                        required autocomplete="current-password" placeholder="••••••••" />
+                        required autocomplete="current-password" placeholder="password" />
 
                     <InputError class="mt-2 text-rose-300" :message="form.errors.password" />
                 </div>

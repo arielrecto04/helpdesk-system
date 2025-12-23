@@ -44,11 +44,8 @@ class TeamTicketsController extends Controller
             
             // Check if user can view this team's tickets
             $isUserTeam = in_array($teamId, $userTeamIds);
-            
-            // can_view_other_teams_tickets - pwede makita ang tickets ng nasa ibang helpdesk teams
-            $canViewOtherTeams = $user->hasPermissionTo('can_view_other_teams_tickets');
 
-            if (!$isUserTeam && !$canViewOtherTeams) {
+            if (!$isUserTeam) {
                 abort(403, 'Unauthorized. You can only view tickets from your teams.');
             }
 
@@ -92,9 +89,9 @@ class TeamTicketsController extends Controller
         if ($request->filled('assigned')) {
             $assignedFilter = $request->input('assigned');
             if ($assignedFilter === 'me' && $employeeId) {
-                $query->where('assigned_to_employee_id', $employeeId);
+                $query->where('employee_id', $employeeId);
             } elseif ($assignedFilter === 'unassigned') {
-                $query->whereNull('assigned_to_employee_id');
+                $query->whereNull('employee_id');
             }
         }
 
@@ -186,7 +183,7 @@ class TeamTicketsController extends Controller
             'description' => 'nullable|string',
             'customer_id' => 'required|exists:customers,id',
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',
@@ -249,7 +246,7 @@ class TeamTicketsController extends Controller
             'description' => 'nullable|string',
             'customer_id' => 'required|exists:customers,id',
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'priority' => 'nullable|string|max:50',
             'stage' => 'nullable|string|max:50',
             'deadline' => 'nullable|date',
@@ -283,13 +280,13 @@ class TeamTicketsController extends Controller
             'updates' => 'required|array',
             'updates.stage' => 'nullable|in:Open,In Progress,Resolved,Closed',
             'updates.priority' => 'nullable|in:Low,Medium,High,Urgent',
-            'updates.assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'updates.employee_id' => 'nullable|exists:employees,id',
         ]);
 
         $ticketIds = $validated['ticket_ids'];
         $updates = array_filter($validated['updates'], fn($val) => $val !== null && $val !== '');
-        if (($updates['assigned_to_employee_id'] ?? null) === 'null') {
-            $updates['assigned_to_employee_id'] = null;
+        if (($updates['employee_id'] ?? null) === 'null') {
+            $updates['employee_id'] = null;
         }
 
         $count = 0;
@@ -301,7 +298,7 @@ class TeamTicketsController extends Controller
             $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
             $canEdit = $hasTeamAccess
-                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
                 || $user->hasPermissionTo('edit_teamtickets');
 
             if ($canEdit) {
@@ -338,7 +335,7 @@ class TeamTicketsController extends Controller
             $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
             $canDelete = $hasTeamAccess
-                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
                 || $user->hasPermissionTo('delete_teamtickets');
 
             if ($canDelete) {

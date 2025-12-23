@@ -205,14 +205,14 @@ class TicketSeeder extends Seeder
             $ticketData['team_id'] = $teams->random()->id;
 
             if (in_array($ticketData['stage'], ['Resolved', 'Closed'])) {
-                $ticketData['assigned_to_employee_id'] = $agents->random()->id;
+                $ticketData['employee_id'] = $agents->random()->id;
                 if ($hasClosedAt) {
                     // closed_at sometime in the past 0-7 days
                     $ticketData['closed_at'] = now()->subDays(rand(0, 7));
                 }
             } else {
                 // For open/in-progress tickets, randomly leave some unassigned
-                $ticketData['assigned_to_employee_id'] = (rand(0, 4) === 0) ? null : $agents->random()->id;
+                $ticketData['employee_id'] = (rand(0, 4) === 0) ? null : $agents->random()->id;
             }
 
             $newTicket = Ticket::create($ticketData);

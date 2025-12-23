@@ -41,6 +41,7 @@ const categorizedPermissions = computed(() => {
     const categories = {
         
         'My Tickets': [],
+        'Ticket Chat': [],
         'All Tickets': [],
         'Team Tickets': [],
         'Users': [],
@@ -64,6 +65,11 @@ const categorizedPermissions = computed(() => {
 
     props.all_permissions.forEach(permission => {
         const raw = (permission.name || '').toLowerCase();
+
+        if ((raw.includes('chat') || raw.includes('ticketmessage') || (raw.includes('message') && raw.includes('ticket'))) ) {
+            categories['Ticket Chat'].push(permission);
+            return;
+        }
 
         if (raw.includes('customer_dashboard') || raw.includes('customer-dashboard') || raw.includes('customer dashboard') || raw.includes('cust_dashboard') || raw.includes('cust-dashboard')) {
             categories['Customer Dashboard'].push(permission);

@@ -19,6 +19,7 @@ const formMessage = ref('');
 // --- Upload & Drag State ---
 const attachment = ref(null);      
 const attachmentPreview = ref(null); 
+const attachmentName = ref(null);
 const isDragging = ref(false);
 
 // --- UI State ---
@@ -33,6 +34,7 @@ const storageKey = `ticketchat_minimized_${props.ticketId}`;
 // --- Existing State ---
 const typingUsers = ref([]);
 const lastTypingTime = ref(0);
+let typingInterval = null;
 const currentPage = ref(1);
 const perPage = ref(20);
 const totalMessages = ref(props.initialMessagesCount || messages.value.length || 0);
@@ -72,18 +74,22 @@ const onFileSelect = (e) => {
 };
 
 const processFile = (file) => {
-    if (!file.type.startsWith('image/')) {
-        showToast("Only image files are allowed.");
-        return;
-    }
+    if (!file) return;
     attachment.value = file;
-    attachmentPreview.value = URL.createObjectURL(file);
+    attachmentName.value = file.name || null;
+    if (file.type && file.type.startsWith('image/')) {
+        attachmentPreview.value = URL.createObjectURL(file);
+    } else {
+        attachmentPreview.value = null;
+    }
 };
 
 const removeAttachment = () => {
     attachment.value = null;
     attachmentPreview.value = null;
-    if (fileInput.value) fileInput.value.value = ''; 
+    attachmentName.value = null;
+    if (fileInput.value) fileInput.value.value = '';
+    if (genericFileInput.value) genericFileInput.value.value = '';
 };
 
 const openFilePicker = () => {
@@ -95,6 +101,23 @@ const openFilePicker = () => {
         console.error('Failed to open file picker', e);
         showToast('Unable to open file picker');
     }
+};
+
+const genericFileInput = ref(null);
+const openGenericFilePicker = () => {
+    try {
+        if (genericFileInput.value && genericFileInput.value.click) {
+            genericFileInput.value.click();
+        }
+    } catch (e) {
+        console.error('Failed to open generic file picker', e);
+        showToast('Unable to open file picker');
+    }
+};
+
+const onGenericFileSelect = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) processFile(files[0]);
 };
 
 // --- Messaging Logic ---
@@ -123,7 +146,8 @@ const submitMessage = async () => {
         ticket_id: props.ticketId,
         user_id: currentUser.id,
         message: text,
-        attachment_url: attachmentPreview.value, 
+        attachment_url: attachmentPreview.value,
+        attachment_name: attachmentName.value || null,
         created_at: new Date().toISOString(),
         user: { id: currentUser.id, name: currentUser.name },
         optimistic: true,
@@ -195,6 +219,44 @@ const addEmoji = (emoji) => {
     showEmojiPicker.value = false;
 };
 
+const isImageUrl = (url) => {
+    return !!(url && /\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(url));
+};
+
+// Image viewer (lightbox) + download
+const showImageModal = ref(false);
+const modalImageUrl = ref(null);
+const modalFilename = ref(null);
+const modalMessageId = ref(null);
+const modalIsLocal = ref(false);
+
+const openImageViewer = (msg) => {
+    const url = msg && msg.attachment_url ? msg.attachment_url : null;
+    if (!url) return;
+    modalImageUrl.value = url;
+    modalFilename.value = msg.attachment_name || (url ? decodeURIComponent(url.split('/').pop().split('?')[0]) : null);
+    modalMessageId.value = msg.id || null;
+    modalIsLocal.value = !!msg.optimistic;
+    showImageModal.value = true;
+};
+
+const openLocalPreview = () => {
+    if (!attachmentPreview.value) return;
+    modalImageUrl.value = attachmentPreview.value;
+    modalFilename.value = attachmentName.value || 'image';
+    modalMessageId.value = null;
+    modalIsLocal.value = true;
+    showImageModal.value = true;
+};
+
+const closeImageViewer = () => {
+    showImageModal.value = false;
+    modalImageUrl.value = null;
+    modalFilename.value = null;
+    modalMessageId.value = null;
+    modalIsLocal.value = false;
+};
+
 const toggleReaction = async (messageId, emoji) => {
     const msg = messages.value.find(m => m.id === messageId);
     if (!msg) return;
@@ -209,16 +271,13 @@ const toggleReaction = async (messageId, emoji) => {
     } else {
         msg.reactions[emoji].push(currentUser.id);
     }
-    
     showReactionPicker.value = null;
-    
 };
 
 
 onMounted(() => {
     scrollToBottom(true);
 
-    // initialize minimized state from localStorage
     try {
         const stored = localStorage.getItem(storageKey);
         if (stored === 'true') {
@@ -243,32 +302,47 @@ onMounted(() => {
             existing ? existing._ts = Date.now() : typingUsers.value.push({ ...e, _ts: Date.now() });
         });
 
-    const typingInterval = setInterval(() => {
+    typingInterval = setInterval(() => {
         const now = Date.now();
         typingUsers.value = typingUsers.value.filter(u => (now - u._ts) < 3000);
     }, 1000);
 });
 
-// Compute partner name: prefer the other user's name found in messages, fall back to ticket props
+
 const partnerName = computed(() => {
-    // find most recent message from other user
+    const currentUserId = currentUser && currentUser.id ? String(currentUser.id) : null;
+
+    // Prefer the most recent message from the other participant
     for (let i = messages.value.length - 1; i >= 0; i--) {
         const m = messages.value[i];
-        if (m && m.user && m.user.id && String(m.user.id) !== String(currentUser.id)) {
-            return m.user.name || `${m.user.first_name || ''} ${m.user.last_name || ''}`.trim() || 'Unknown';
+        const user = m && m.user ? m.user : null;
+        if (!user) continue;
+
+        // If we know current user id, ensure it's not the same as message author
+        if (user.id && currentUserId !== null) {
+            if (String(user.id) !== currentUserId) {
+                const name = user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim();
+                return name || 'Unknown';
+            }
+        } else if (user.id && currentUserId === null) {
+            // No current user info — return first available participant name
+            const name = user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim();
+            return name || 'Unknown';
         }
     }
 
-    // fallback to ticket props if present
     const ticket = page.props.ticket || null;
     if (ticket) {
-        // If the current user is the assigned employee, partner is the customer
-        if (ticket.customer && ticket.customer.first_name) {
-            return `${ticket.customer.first_name} ${ticket.customer.last_name || ''}`.trim();
+        if (ticket.customer) {
+            const cust = ticket.customer;
+            const name = cust.first_name ? `${cust.first_name} ${cust.last_name || ''}`.trim() : (cust.name || '');
+            if (name) return name;
         }
-        // Fallback to assigned_to (employee)
-        if (ticket.assigned_to && (ticket.assigned_to.first_name || ticket.assigned_to.user_id)) {
-            return ticket.assigned_to.first_name ? `${ticket.assigned_to.first_name} ${ticket.assigned_to.last_name || ''}`.trim() : (ticket.assigned_to.name || 'Unknown');
+
+        if (ticket.assigned_to) {
+            const assigned = ticket.assigned_to;
+            const name = assigned.first_name ? `${assigned.first_name} ${assigned.last_name || ''}`.trim() : (assigned.name || '');
+            if (name) return name;
         }
     }
 
@@ -278,6 +352,10 @@ const partnerName = computed(() => {
 onUnmounted(() => {
     if (window.Echo) {
         Echo.leave(`ticket.${props.ticketId}`);
+    }
+    if (typingInterval) {
+        clearInterval(typingInterval);
+        typingInterval = null;
     }
 });
 
@@ -337,10 +415,6 @@ const toggleMinimize = () => {
             </div>
         </div>
         
-        
-        
-        
-
         <div v-show="!isMinimized" ref="messageContainer" @scroll="checkScrollPosition" class="flex-1 overflow-y-auto bg-gray-50 p-4 space-y-4 z-10">
             <div class="flex justify-center h-8" v-if="hasMore">
                 <button v-if="!loadingMore" @click.prevent="loadMore" class="text-xs text-blue-500 bg-blue-50 px-3 py-1 rounded-full">Load earlier</button>
@@ -365,8 +439,20 @@ const toggleMinimize = () => {
                                     msg.optimistic ? 'opacity-75' : 'opacity-100'
                                  ]">
                                  
-                                 <div v-if="msg.attachment_url" class="p-1 pb-0">
-                                    <img :src="msg.attachment_url" class="rounded-lg max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition" @click="window.open(msg.attachment_url, '_blank')">
+                                            <div v-if="msg.attachment_url || msg.attachment_name" class="p-1 pb-0">
+                                                <template v-if="isImageUrl(msg.attachment_url)">
+                                        <img :src="msg.attachment_url" class="rounded-lg max-w-full max-h-64 object-cover cursor-pointer hover:opacity-90 transition" @click="openImageViewer(msg)">
+                                    </template>
+                                    <template v-else>
+                                        <a v-if="msg.attachment_url && !msg.optimistic" :href="route('ticket.messages.attachment', msg.id)" target="_blank" class="inline-flex items-center gap-2 bg-white text-gray-800 px-3 py-2 rounded-md border border-gray-200">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95L9.9 17.41a1.5 1.5 0 01-2.12-2.12L18.83 6.35"></path></svg>
+                                            <span class="truncate max-w-xs">{{ msg.attachment_name || 'Download file' }}</span>
+                                        </a>
+                                        <div v-else class="inline-flex items-center gap-2 bg-white text-gray-800 px-3 py-2 rounded-md border border-gray-200">
+                                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95L9.9 17.41a1.5 1.5 0 01-2.12-2.12L18.83 6.35"></path></svg>
+                                            <span class="truncate max-w-xs">{{ msg.attachment_name || (msg.attachment_url ? decodeURIComponent(msg.attachment_url.split('/').pop().split('?')[0]) : 'Attachment') }}</span>
+                                        </div>
+                                    </template>
                                 </div>
 
                                 <div v-if="msg.message" class="px-4 py-2 whitespace-pre-wrap leading-relaxed">{{ msg.message }}</div>
@@ -406,7 +492,20 @@ const toggleMinimize = () => {
         <div v-show="!isMinimized" class="p-4 bg-white border-t border-gray-200 z-10">
             <div v-if="attachmentPreview" class="mb-2 flex items-start">
                 <div class="relative group">
-                    <img :src="attachmentPreview" class="h-16 w-16 object-cover rounded-md border border-gray-200 shadow-sm">
+                    <img :src="attachmentPreview" class="h-16 w-16 object-cover rounded-md border border-gray-200 shadow-sm cursor-pointer" @click="openLocalPreview">
+                    <button @click="removeAttachment" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div v-else-if="attachment" class="mb-2 flex items-start">
+                <div class="relative group inline-flex items-center gap-3 border border-gray-200 rounded-md px-3 py-2 bg-white">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95L9.9 17.41a1.5 1.5 0 01-2.12-2.12L18.83 6.35"></path></svg>
+                    <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-800 truncate max-w-xs">{{ attachmentName }}</span>
+                        <span class="text-xs text-gray-500">{{ attachment.size ? (Math.round(attachment.size/1024)) + ' KB' : '' }}</span>
+                    </div>
                     <button @click="removeAttachment" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
@@ -420,9 +519,9 @@ const toggleMinimize = () => {
             </div>
 
             <form @submit.prevent="submitMessage" class="flex gap-2 items-end">
-                <!-- Microphone -->
-                <button type="button" class="h-[48px] w-[40px] flex items-center justify-center text-gray-400 hover:text-gray-600 transition" title="Voice message">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                <!-- File Attachment (generic) -->
+                <button type="button" @click="openGenericFilePicker" class="h-[48px] w-[40px] flex items-center justify-center text-gray-400 hover:text-gray-600 transition" title="Attach file">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95L9.9 17.41a1.5 1.5 0 01-2.12-2.12L18.83 6.35"></path></svg>
                 </button>
                 
                 <!-- Gallery/Image -->
@@ -431,6 +530,7 @@ const toggleMinimize = () => {
                 </button>
                 
                 <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="onFileSelect">
+                <input type="file" ref="genericFileInput" class="hidden" @change="onGenericFileSelect">
 
                 <div class="flex-1 relative">
                     <textarea v-model="formMessage" @keydown.enter.prevent="submitMessage" @input="sendTyping" rows="1" class="w-full border-gray-300 rounded-2xl px-4 py-3 pr-10 shadow-sm focus:border-orange-500 focus:ring-orange-500 resize-none" placeholder="Aa" style="min-height: 48px; max-height: 120px;"></textarea>
@@ -453,6 +553,26 @@ const toggleMinimize = () => {
                     <svg class="w-5 h-5 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                 </button>
             </form>
+        </div>
+        <!-- Image Modal -->
+        <div v-if="showImageModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" @click.self="closeImageViewer">
+            <div class="relative p-4">
+                <div class="flex items-center gap-2">
+                    <button @click="closeImageViewer" class="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-md">
+                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+
+                    <div class="absolute -top-6 left-2 flex gap-2">
+                        <a v-if="!modalIsLocal && modalMessageId" :href="route('ticket.messages.attachment', modalMessageId)" @click.stop target="_blank" rel="noopener" class="bg-white text-sm px-3 py-1 rounded shadow hover:bg-gray-100">
+                            Download
+                        </a>
+                        <a v-else-if="modalIsLocal && modalImageUrl" :href="modalImageUrl" :download="modalFilename" @click.stop class="bg-white text-sm px-3 py-1 rounded shadow hover:bg-gray-200">
+                            Download
+                        </a>
+                    </div>
+                </div>
+                <img :src="modalImageUrl" class="max-w-[85vw] max-h-[85vh] rounded-md" />
+            </div>
         </div>
     </div>
 </template>

@@ -105,7 +105,7 @@ class CustomerRatingSeeder extends Seeder
             CustomerRating::create([
                 'ticket_id' => $ticket->id,
                 'customer_id' => $ticket->customer_id,
-                'assigned_to_employee_id' => $ticket->assigned_to_employee_id,
+                'employee_id' => $ticket->employee_id,
                 'team_id' => $ticket->team_id,
                 'rating' => $rating,
                 'comment' => $comment,

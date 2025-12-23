@@ -15,7 +15,18 @@ Broadcast::channel('ticket.{ticketId}', function ($user, $ticketId) {
         Log::warning('Broadcasting auth failed: Ticket not found', ['ticketId' => $ticketId]);
         return false;
     }
-    $isCustomer = $user->id === $ticket->customer_id;
+
+    $isCustomer = false;
+    if ($ticket->customer) {
+        if (isset($ticket->customer->user_id) && $ticket->customer->user_id === $user->id) {
+            $isCustomer = true;
+        } elseif ((int) $user->id === (int) $ticket->customer_id) {
+            $isCustomer = true;
+        }
+    } else {
+        // Fallback: if no eager-loaded customer relation, compare raw ids
+        $isCustomer = (int) $user->id === (int) $ticket->customer_id;
+    }
 
     // Find employee by email
     $employee = Employee::where('email', $user->email)->first();
@@ -23,7 +34,7 @@ Broadcast::channel('ticket.{ticketId}', function ($user, $ticketId) {
 
     // Check if the ticket is assigned to an employee that maps to this user
     $isAssigned = false;
-    if ($ticket->assigned_to_employee_id) {
+    if ($ticket->employee_id) {
         $assigned = $ticket->assignedTo;
         if ($assigned && $assigned->user_id) {
             $isAssigned = $assigned->user_id === $user->id;

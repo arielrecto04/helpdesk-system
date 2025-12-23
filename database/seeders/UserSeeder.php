@@ -39,21 +39,5 @@ class UserSeeder extends Seeder
         if ($adminRole && !$admin->roles()->where('role_id', $adminRole->id)->exists()) {
             $admin->roles()->attach($adminRole->id);
         }
-
-        for ($i = 1; $i <= 5; $i++) {
-            $agent = User::firstOrCreate(
-                ['email' => "agent{$i}@helpdesk.com"],
-                [
-                    'first_name' => "Support",
-                    'middle_name' => "Agent",
-                    'last_name' => "Agent {$i}",
-                    'password' => bcrypt('password'),
-                ]
-            );
-
-            if ($agentRole && !$agent->roles()->where('role_id', $agentRole->id)->exists()) {
-                $agent->roles()->attach($agentRole->id);
-            }
-        }
     }
 }

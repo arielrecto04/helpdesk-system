@@ -14,7 +14,7 @@ return new class extends Migration
             $table->text('description');
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('team_id')->nullable();
-            $table->unsignedBigInteger('assigned_to_employee_id')->nullable();
+            $table->unsignedBigInteger('employee_id')->nullable();
             $table->enum('priority', ['Low', 'Medium', 'High', 'Urgent'])->default('Medium');
             $table->enum('stage', ['Open', 'In Progress', 'Resolved', 'Closed'])->default('Open');
             $table->dateTime('deadline')->nullable();
@@ -31,7 +31,7 @@ return new class extends Migration
                   ->on('helpdesk_teams')
                   ->onDelete('set null');
 
-            $table->foreign('assigned_to_employee_id')
+            $table->foreign('employee_id')
                 ->references('id')
                 ->on('employees')
                 ->nullOnDelete();

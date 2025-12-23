@@ -15,7 +15,7 @@ class CustomerRating extends Model
     protected $fillable = [
         'ticket_id',
         'customer_id',
-        'assigned_to_employee_id',
+        'employee_id',
         'team_id',
         'rating',
         'comment',
@@ -47,7 +47,7 @@ class CustomerRating extends Model
      */
     public function assignedTo()
     {
-        return $this->belongsTo(Employee::class, 'assigned_to_employee_id');
+        return $this->belongsTo(Employee::class, 'employee_id');
     }
 
     /**

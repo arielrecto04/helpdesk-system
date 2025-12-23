@@ -121,7 +121,7 @@ class CustomerDashboardController extends Controller
         CustomerRating::create([
             'ticket_id' => $ticket->id,
             'customer_id' => $customer->id,
-            'assigned_to_employee_id' => $ticket->assigned_to_employee_id,
+            'employee_id' => $ticket->employee_id,
             'team_id' => $ticket->team_id,
             'rating' => $validated['rating'],
             'comment' => $validated['comment'] ?? null,
@@ -184,7 +184,7 @@ class CustomerDashboardController extends Controller
         $data = array_merge($validated, [
             'customer_id' => $customer->id,
             // customers must not assign support user
-            'assigned_to_employee_id' => null,
+            'employee_id' => null,
             'stage' => 'Open',
         ]);
 

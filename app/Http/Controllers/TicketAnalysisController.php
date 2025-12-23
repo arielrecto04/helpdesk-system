@@ -325,10 +325,10 @@ class TicketAnalysisController extends Controller
             }
         }
 
-        // Employee filter (assigned_to_employee_id)
+        // Employee filter (employee_id)
         $employee = $request->query('employee');
         if ($employee && $employee !== 'all') {
-            $query->where('assigned_to_employee_id', $employee);
+            $query->where('employee_id', $employee);
         }
 
         $tickets = $query->with(['customer.company', 'team', 'assignedEmployee:id,first_name,last_name'])->orderBy('created_at', 'desc')->get();

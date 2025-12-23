@@ -23,11 +23,11 @@ class DashboardController extends Controller
         if (empty($employeeId)) {
             return 0;
         }
-        $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
+        $totalResolved = Ticket::where('employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->count();
 
-        $totalAssigned = Ticket::where('assigned_to_employee_id', $employeeId)
+        $totalAssigned = Ticket::where('employee_id', $employeeId)
             ->count();
 
         return $totalAssigned > 0 ? round(($totalResolved / $totalAssigned) * 100) : 0;
@@ -39,7 +39,7 @@ class DashboardController extends Controller
             return 0;
         }
         $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
-            $query->where('assigned_to_employee_id', $employeeId);
+            $query->where('employee_id', $employeeId);
         })->avg('rating');
 
         return round($ratings ?? 0, 1);
@@ -50,7 +50,7 @@ class DashboardController extends Controller
         if (empty($employeeId)) {
             return 0;
         }
-        $weeklyCount = Ticket::where('assigned_to_employee_id', $employeeId)
+        $weeklyCount = Ticket::where('employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
             ->count();
@@ -63,12 +63,12 @@ class DashboardController extends Controller
         if (empty($employeeId)) {
             return 0;
         }
-        $totalResolved = Ticket::where('assigned_to_employee_id', $employeeId)
+        $totalResolved = Ticket::where('employee_id', $employeeId)
             ->where('stage', 'Resolved')
             ->whereBetween('updated_at', [now()->subDays(7), now()])
             ->count();
 
-        $totalAssigned = Ticket::where('assigned_to_employee_id', $employeeId)
+        $totalAssigned = Ticket::where('employee_id', $employeeId)
             ->whereBetween('created_at', [now()->subDays(7), now()])
             ->count();
 
@@ -81,7 +81,7 @@ class DashboardController extends Controller
             return 0;
         }
         $ratings = \App\Models\CustomerRating::whereHas('ticket', function ($query) use ($employeeId) {
-            $query->where('assigned_to_employee_id', $employeeId);
+            $query->where('employee_id', $employeeId);
         })
         ->whereBetween('submitted_on', [now()->subDays(7), now()])
         ->avg('rating');
@@ -91,23 +91,30 @@ class DashboardController extends Controller
 
     public function index()
     {
+        // 1. Authentication
+        // Kunin kung sino ang naka-login na user
         $user = Auth::user();
         /** @var User $user */
 
-        // Base query respecting user visibility permissions
+        // 2. Base Query (Permission Check)
+        // Gumawa ng query para sa tickets, pero i-filter agad gamit ang 'visibleTo'.
+        // Sinisiguro nito na kung ano lang ang allowed makita ng user (e.g., admin vs normal user), yun lang ang bibilangin.
         $visibleTickets = Ticket::query()->visibleTo($user);
 
-        // Global stats (respecting permissions)
+        // 3. Global Stats (General Overview)
+        // Ito ang mga numero para sa buong dashboard.
+        // Gumagamit tayo ng (clone $visibleTickets) para hindi masira ang main query.
         $stats = [
-            'totalTickets' => (clone $visibleTickets)->count(),
-            'openTickets' => (clone $visibleTickets)->where('stage', 'Open')->count(),
+            'totalTickets' => (clone $visibleTickets)->count(), // Bilang ng lahat
+            'openTickets' => (clone $visibleTickets)->where('stage', 'Open')->count(), // Bilang ng Open pa
             'resolvedToday' => (clone $visibleTickets)->where('stage', 'Resolved')
-                ->whereDate('updated_at', today())
+                ->whereDate('updated_at', today()) // Na-resolve ngayong araw
                 ->count(),
-            'averageResponseTime' => $this->calculateAverageResponseTime()
+            'averageResponseTime' => $this->calculateAverageResponseTime() // Custom function computation
         ];
 
-        // Additional global breakdowns used in the dashboard header
+        // 4. Global Breakdowns (Header Stats)
+        // Mas detalyadong stats para sa taas ng dashboard (High Priority, Urgent, Failed).
         $globalStats = [
             'AllhighPriorityTickets' => (clone $visibleTickets)
                 ->where('priority', 'High')
@@ -120,36 +127,46 @@ class DashboardController extends Controller
                 ->where('stage', '!=', 'Resolved')
                 ->count(),
             'AllfailedTickets' => (clone $visibleTickets)
-                ->whereDate('deadline', '<', now())
+                ->whereDate('deadline', '<', now()) // Kung ang deadline ay mas mababa sa "ngayon" (past due)
                 ->where('stage', '!=', 'Resolved')
                 ->where('stage', '!=', 'Closed')
                 ->where('closed_at', null)
                 ->count()
         ];
 
-        // Load employee record and their teams
+        // 5. Employee Identification
+        // Hanapin ang 'Employee' record na nakadugtong sa User account.
+        // Mahalaga ito dahil ang tickets ay naka-assign sa Employee ID, hindi sa User ID.
         $employee = Employee::where('user_id', $user->id)
             ->with('helpdeskTeams')
             ->first();
         
+        // Fallback: Kung walang user_id match, subukan hanapin gamit ang email.
         if (!$employee) {
             $employee = Employee::where('email', $user->email)
                 ->with('helpdeskTeams')
                 ->first();
         }
         
-        $employeeId = $employee?->id;
+        $employeeId = $employee?->id; // Gamitin ang ID kung may nahanap, or null.
+        
+        // 6. User Specific Query
+        // Gumawa ng query na naka-focus lang sa tickets ng empleyado na ito.
         $ticketsQuery = Ticket::query();
 
         if ($employeeId) {
-            $ticketsQuery->where('assigned_to_employee_id', $employeeId);
+            $ticketsQuery->where('employee_id', $employeeId); // Filter: Tickets KO lang
         } else {
-            $ticketsQuery->whereNull('id');
+            $ticketsQuery->whereNull('id'); // Kung hindi employee, walang ibabalik (force empty).
         }
 
+        // 7. User Stats Compilation
+        // Ito ang stats ng mismong performance ng user (My Assigned, My Success Rate, etc.)
         $userStats = [
-            // Total tickets assigned to this user
+            // Total na naka-assign sa user
             'AllAssignedTickets' => (clone $ticketsQuery)->count(),
+            
+            // Mga urgent/high priority na naka-assign sa user
             'AllhighPriorityTickets' => (clone $ticketsQuery)
                 ->where('priority', 'High')
                 ->where('stage', '!=', 'Closed')
@@ -160,6 +177,7 @@ class DashboardController extends Controller
                 ->where('stage', '!=', 'Closed')
                 ->where('stage', '!=', 'Resolved')
                 ->count(),
+            // Tickets ng user na nag-fail sa deadline
             'AllfailedTickets' => (clone $ticketsQuery)
                 ->whereDate('deadline', '<', now())
                 ->where('stage', '!=', 'Resolved')
@@ -167,12 +185,13 @@ class DashboardController extends Controller
                 ->where('closed_at', null)
                 ->count(),
 
-            'AllClosedTickets' => (clone $ticketsQuery)
-                ->where('stage', 'Resolved')
-                ->where('closed_at', '!=', null)
-                ->count(),
+            // History ng user
+            // 'AllClosedTickets' => (clone $ticketsQuery)
+            //     ->where('stage', 'Resolved')
+            //     ->where('closed_at', '!=', null)
+            //     ->count(),
 
-
+            // Daily Performance ng user
             'TodayclosedTickets' => (clone $ticketsQuery)
                 ->where('stage', 'Resolved')
                 ->whereDate('updated_at', today())
@@ -183,6 +202,8 @@ class DashboardController extends Controller
             'TodayDeadlineTickets' => (clone $ticketsQuery)
                 ->whereDate('deadline', today())
                 ->count(),
+            
+            // Complex Calculations (NASA ibang functions ito sa baba ng controller mo)
             'TodaysuccessRate' => $this->calculateUserSuccessRate($employeeId),
             'TodayaverageRating' => $this->calculateUserAverageRating($employeeId),
             'weeklyAvg' => [
@@ -192,52 +213,80 @@ class DashboardController extends Controller
             ]
         ];
 
-        $teams = HelpdeskTeam::all()->map(function ($team) use ($user, $employeeId, $visibleTickets) {
-            $teamVisible = (clone $visibleTickets)->where('team_id', $team->id);
+        // 8. Access Control for Teams (moved before stats calculation)
+        // Alamin kung saang teams lang member ang employee.
+        $employeeTeamIds = $employee ? $employee->helpdeskTeams->pluck('id')->toArray() : [];
 
+        // Check kung may special permission ang user to view all teams
+        $canViewAllTeams = $user->hasPermissionTo('can_view_tickets_even_not_employee');
+
+        // 9. Teams Statistics Loop - Only for accessible teams
+        // I-loop lang ang teams na pwede makita ng user para efficient
+        $teams = HelpdeskTeam::all()
+            ->filter(function ($team) use ($employeeTeamIds, $canViewAllTeams) {
+                // Skip teams that user can't access
+                $isMember = in_array($team->id, $employeeTeamIds);
+                return $canViewAllTeams || $isMember;
+            })
+            ->map(function ($team) use ($employeeId, $visibleTickets, $user) {
+            // Filter tickets para sa current Team sa loop
+            $teamVisible = (clone $visibleTickets)->where('team_id', $team->id);
+            
+            // Team-wide stats
             $totalTickets = (clone $teamVisible)->count();
             $resolvedTickets = (clone $teamVisible)
                 ->where('stage', 'Resolved')
                 ->count();
 
-            // User-specific stats for this team (tickets assigned to the current employee)
-            $userClosed = $employeeId ? Ticket::where('team_id', $team->id)
-                ->where('assigned_to_employee_id', $employeeId)
+            // 10. User Performance PER Team (with proper permission scope)
+            // Ilang ticket ang natapos ng current user SA LOOB ng team na ito?
+            $userClosed = $employeeId ? Ticket::query()->visibleTo($user)
+                ->where('team_id', $team->id)
+                ->where('employee_id', $employeeId)
                 ->where('stage', 'Resolved')
                 ->count() : 0;
 
-            $userTotal = $employeeId ? Ticket::where('team_id', $team->id)
-                ->where('assigned_to_employee_id', $employeeId)
+            $userTotal = $employeeId ? Ticket::query()->visibleTo($user)
+                ->where('team_id', $team->id)
+                ->where('employee_id', $employeeId)
                 ->count() : 0;
 
+            // Calculate percentage success rate
             $userSuccess = $userTotal > 0 ? round(($userClosed / $userTotal) * 100) : 0;
 
-            $userRating = $employeeId ? round(CustomerRating::whereHas('ticket', function ($query) use ($team, $employeeId) {
-                $query->where('team_id', $team->id)
-                      ->where('assigned_to_employee_id', $employeeId);
+            // Calculate rating (with proper permission scope)
+            $userRating = $employeeId ? round(CustomerRating::whereHas('ticket', function ($query) use ($team, $employeeId, $user) {
+                $query->visibleTo($user)
+                    ->where('team_id', $team->id)
+                    ->where('employee_id', $employeeId);
             })->avg('rating') ?? 0, 1) : 0;
 
-            // Queue counts for the user within this team
-            $userOpen = $employeeId ? Ticket::where('team_id', $team->id)
-                ->where('assigned_to_employee_id', $employeeId)
+            // 11. Queue Counts (Breakdown ng tickets sa team dashboard with proper scope)
+            $userOpen = $employeeId ? Ticket::query()->visibleTo($user)
+                ->where('team_id', $team->id)
+                ->where('employee_id', $employeeId)
                 ->where('stage', 'Open')
                 ->count() : 0;
 
-            $userUrgent = $employeeId ? Ticket::where('team_id', $team->id)
-                ->where('assigned_to_employee_id', $employeeId)
+            $userUrgent = $employeeId ? Ticket::query()->visibleTo($user)
+                ->where('team_id', $team->id)
+                ->where('employee_id', $employeeId)
                 ->where('priority', 'Urgent')
                 ->count() : 0;
 
-            $userFailed = $employeeId ? Ticket::where('team_id', $team->id)
-                ->where('assigned_to_employee_id', $employeeId)
+            $userFailed = $employeeId ? Ticket::query()->visibleTo($user)
+                ->where('team_id', $team->id)
+                ->where('employee_id', $employeeId)
                 ->whereDate('deadline', '<', now())
                 ->where('stage', '!=', 'Resolved')
                 ->count() : 0;
 
+            // I-return ang data structure para sa specific team na ito
             return [
                 'id' => $team->id,
                 'name' => $team->team_name,
                 'ticketCount' => $totalTickets,
+                'canView' => true, // Already filtered, all remaining teams are viewable
                 'stats' => [
                     'closed' => $resolvedTickets,
                     'success' => $totalTickets > 0 
@@ -247,31 +296,23 @@ class DashboardController extends Controller
                         $query->where('team_id', $team->id);
                     })->avg('rating') ?? 0, 1)
                 ],
-                // Add user-specific stats so frontend can show per-user counts when needed
+                // Personal stats ko sa team na ito
                 'userStats' => [
                     'closed' => $userClosed,
                     'success' => $userSuccess,
                     'rating' => $userRating,
                 ],
+                // Breakdown ng tickets sa team
                 'queue' => [
-                    'open' => (clone $teamVisible)
-                        ->where('stage', 'Open')
-                        ->count(),
-                    'unassigned' => (clone $teamVisible)
-                        ->whereNull('assigned_to_employee_id')
-                        ->count(),
-                    'urgent' => (clone $teamVisible)
-                        ->where('priority', 'Urgent')
-                        ->count(),
-                    'failed' => (clone $teamVisible)
-                        ->whereDate('deadline', '<', now())
-                        ->where('stage', '!=', 'Resolved')
-                        ->count(),
-                    // user-specific queue breakdown
+                    'open' => (clone $teamVisible)->where('stage', 'Open')->count(),
+                    'unassigned' => (clone $teamVisible)->whereNull('employee_id')->count(), // Walang nag-o-own
+                    'urgent' => (clone $teamVisible)->where('priority', 'Urgent')->count(),
+                    'failed' => (clone $teamVisible)->whereDate('deadline', '<', now())
+                                ->where('stage', '!=', 'Resolved')->count(),
+                    // Breakdown ng tickets ko sa team
                     'user' => [
                         'open' => $userOpen,
-                        // 'unassigned' for a specific user usually not applicable; set to 0
-                        'unassigned' => 0,
+                        'unassigned' => 0, // N/A kasi assigned na sa akin
                         'urgent' => $userUrgent,
                         'failed' => $userFailed,
                     ]
@@ -279,39 +320,8 @@ class DashboardController extends Controller
             ];
         });
 
-        // Determine team access for current user
-        $employeeTeamIds = $employee ? $employee->helpdeskTeams->pluck('id')->toArray() : [];
-
-        $teams = $teams->map(function ($team) use ($user, $employeeTeamIds) {
-            // User can view team if they are a member OR have 'can_view_other_teams_tickets' permission
-            $isMember = in_array($team['id'], $employeeTeamIds);
-            $canViewOtherTeams = $user->hasPermissionTo('can_view_other_teams_tickets');
-
-            $team['canView'] = $isMember || $canViewOtherTeams;
-
-            return $team;
-        });
-
-        // Recent activities
-        $recentActivities = (clone $visibleTickets)
-            ->with(['customer', 'assignedTo', 'team'])
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(function ($ticket) {
-                return [
-                    'id' => $ticket->id,
-                    'priority' => $ticket->priority,
-                    'subject' => $ticket->subject,
-                    'stage' => $ticket->stage,
-                    'time' => $ticket->created_at->diffForHumans(),
-                    'customer' => $ticket->customer ? "{$ticket->customer->first_name} {$ticket->customer->last_name}" : 'N/A',
-                    'assignedTo' => $ticket->assignedTo ? "{$ticket->assignedTo->first_name} {$ticket->assignedTo->last_name}" : 'Unassigned',
-                    'team' => $ticket->team ? $ticket->team->team_name : 'Unassigned'
-                ];
-            });
-
-        // Prepare auth data with roles, permissions, and teams
+        // 12. Prepare Authorization Data
+        // Kunin ang roles at permissions ng user para ipasa sa frontend (Inertia/Vue).
         $permissions = $user->roles()
             ->with('permissions')
             ->get()
@@ -320,6 +330,7 @@ class DashboardController extends Controller
             ->values()
             ->toArray();
 
+        // Buuin ang User Object kasama ang roles, permissions at teams.
         $authData = [
             'user' => array_merge($user->toArray(), [
                 'roles' => $user->roles()->pluck('name')->toArray(),
@@ -332,13 +343,14 @@ class DashboardController extends Controller
             ])
         ];
 
+        // 13. Final Return
+        // Ibalik ang Dashboard view gamit ang Inertia, bitbit ang lahat ng data.
         return Inertia::render('Dashboard', [
             'auth' => $authData,
             'stats' => $stats,
             'userStats' => $userStats,
             'globalStats' => $globalStats,
             'teams' => $teams,
-            'recentActivities' => $recentActivities,
         ]);
     }
 }

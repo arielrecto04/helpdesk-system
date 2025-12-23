@@ -77,7 +77,7 @@ class AllTicketsController extends Controller
                     $q->where('user_id', $user->id);
                 });
             } elseif ($assignedFilter === 'unassigned') {
-                $query->whereNull('assigned_to_employee_id');
+                $query->whereNull('employee_id');
             }
         }
 
@@ -184,7 +184,7 @@ class AllTicketsController extends Controller
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'stage' => ['required', Rule::in(['Open', 'In Progress', 'Resolved', 'Closed'])],
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
@@ -233,7 +233,7 @@ class AllTicketsController extends Controller
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
         $canEdit = $hasTeamAccess
-            || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+            || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
             || $user->hasPermissionTo('edit_alltickets');
 
         if (!$canEdit) {
@@ -268,7 +268,7 @@ class AllTicketsController extends Controller
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
         $canEdit = $hasTeamAccess
-            || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+            || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
             || $user->hasPermissionTo('edit_alltickets');
 
         if (!$canEdit) {
@@ -282,7 +282,7 @@ class AllTicketsController extends Controller
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Urgent'])],
             'stage' => ['required', Rule::in(['Open', 'In Progress', 'Resolved', 'Closed'])],
             'team_id' => 'required|exists:helpdesk_teams,id',
-            'assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
             'deadline' => 'nullable|date',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
@@ -308,7 +308,7 @@ class AllTicketsController extends Controller
         $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
         $canDelete = $hasTeamAccess
-            || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+            || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
             || $user->hasPermissionTo('delete_alltickets');
 
         if (!$canDelete) {
@@ -337,14 +337,14 @@ class AllTicketsController extends Controller
             'updates' => 'required|array',
             'updates.stage' => 'nullable|in:Open,In Progress,Resolved,Closed',
             'updates.priority' => 'nullable|in:Low,Medium,High,Urgent',
-            'updates.assigned_to_employee_id' => 'nullable|exists:employees,id',
+            'updates.employee_id' => 'nullable|exists:employees,id',
         ]);
 
         $ticketIds = $validated['ticket_ids'];
         $updates = array_filter($validated['updates'], fn($val) => $val !== null && $val !== '');
         
-        if ($updates['assigned_to_employee_id'] ?? null === 'null') {
-            $updates['assigned_to_employee_id'] = null;
+        if ($updates['employee_id'] ?? null === 'null') {
+            $updates['employee_id'] = null;
         }
 
         $count = 0;
@@ -356,7 +356,7 @@ class AllTicketsController extends Controller
             $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
             $canEdit = $hasTeamAccess
-                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
                 || $user->hasPermissionTo('edit_alltickets');
 
             if ($canEdit) {
@@ -396,7 +396,7 @@ class AllTicketsController extends Controller
             $hasTeamAccess = $user->teams()->where('helpdesk_teams.id', $ticket->team_id)->exists();
 
             $canDelete = $hasTeamAccess
-                || ($ticket->assigned_to_employee_id !== null && $employeeId !== null && $ticket->assigned_to_employee_id === $employeeId)
+                || ($ticket->employee_id !== null && $employeeId !== null && $ticket->employee_id === $employeeId)
                 || $user->hasPermissionTo('delete_alltickets');
 
             if ($canDelete) {

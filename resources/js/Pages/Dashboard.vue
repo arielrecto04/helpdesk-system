@@ -1,32 +1,36 @@
 <script setup>
+
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+// 2. Props Definition: Dito tinatanggap ang data galing sa Backend (Laravel controller)
 const props = defineProps({
     auth: {
         type: Object,
-        required: true
+        required: true // Kailangan may laman ito (user info)
     },
     stats: {
         type: Object,
-        required: true
+        required: true // General statistics data
     },
     recentActivities: {
         type: Array,
-        required: true
+        required: true // Listahan ng mga nakaraang activities
     },
     teams: {
         type: Array,
-        required: true
+        required: true // Listahan ng lahat ng teams
     },
+    // Detalyadong stats ng user. May "default" values ito para hindi mag-error
+    // kung sakaling null o walang naipasa mula sa backend.
     userStats: {
         type: Object,
         default: () => ({
             AllhighPriorityTickets: 0,
             AllurgentTickets: 0,
             AllfailedTickets: 0,
-            AllClosedTickets: 0,
+            // AllClosedTickets: 0,
             AllAssignedTickets: 0,
             TodayclosedTickets: 0,
             TodayAssignedTickets: 0,
@@ -34,12 +38,13 @@ const props = defineProps({
             TodaysuccessRate: 0,
             TodayaverageRating: 0,
             weeklyAvg: {
-            closed: 0,
-            success: 0,
-            rating: 0
+                closed: 0,
+                success: 0,
+                rating: 0
             }
         })
     },
+    // Global stats na may default values din para safety
     globalStats: {
         type: Object,
         default: () => ({
@@ -48,36 +53,36 @@ const props = defineProps({
             AllfailedTickets: 0,
         }),
     },
-
 });
 
+// 3. Accessing Page Data: Kinukuha ang global shared data ng Inertia
 const page = usePage();
-const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions ? page.props.auth.user.permissions : [];
+
+// Safety Check: Sinisigurado na hindi mag-eerror kung sakaling walang 'user' o 'permissions'
+// Kung may permissions, kunin ito; kung wala, gawing empty array []
+const userPermissions = page.props.auth && page.props.auth.user && page.props.auth.user.permissions 
+    ? page.props.auth.user.permissions 
+    : [];
+
+// Safety Check: Kunin ang logged-in user object, kung wala, gawing null
 const authUser = page.props.auth && page.props.auth.user ? page.props.auth.user : null;
 
+// 4. Computed Property: Visible Teams
+// Ito ay automatic na nag-a-update kapag nagbago ang 'teams' o 'authUser'
 const visibleTeams = computed(() => {
+    // Kunin ang listahan ng teams mula sa props, o empty array kung wala
     const allTeams = props.teams || [];
     
-    if ((userPermissions && userPermissions.includes('can_view_other_teams_tickets'))) {
-        return allTeams;
-    }
-
-    // Otherwise show only teams the user belongs to
-    let userTeamIds = [];
-
-    if (authUser && Array.isArray(authUser.teams)) {
-        userTeamIds = authUser.teams.map(t => t.id);
-    }
-
-    if (!userTeamIds.length) {
-        return [];
-    }
-
-    return allTeams.filter(team => userTeamIds.includes(team.id));
+    // Filter Logic: Ibalik lang ang mga teams na may canView = true
+    // Ang canView flag ay na-set na sa backend base sa user permissions at team membership
+    return allTeams.filter(team => team.canView === true);
 });
 
+// 5. Computed Property: Permissions Check
+// Tinitignan kung allowed ba ang user makita ang lahat ng tickets
 const hasPermission = computed(() => {
     const perms = userPermissions || [];
+    // Magre-return ng TRUE kung meron siya kahit isa sa mga permissions na ito
     return (
         perms.includes('view_alltickets_menu') ||
         perms.includes('show_alltickets')
